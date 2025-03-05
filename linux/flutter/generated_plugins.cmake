@@ -3,7 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
   file_selector_linux
+=======
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 class KImage {
   static const String logo = 'assets/images/Logo.png';
   static const String logo2 = 'assets/images/Logo2.png';
@@ -20,4 +21,8 @@ class KImage {
   static const String licensePlate = 'assets/images/licensePlate.png';
   static const String taxiImg =
       "https://images.unsplash.com/photo-1539787200876-3c033a7bebcd?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+=======
+class TImage {
+  static const String logo = 'assets/images/Logo.png';
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
 }

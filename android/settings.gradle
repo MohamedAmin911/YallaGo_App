@@ -18,12 +18,17 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+<<<<<<< HEAD
     id "com.android.application" version "8.9.0" apply false
     // START: FlutterFire Configuration
     id "com.google.gms.google-services" version "4.3.15" apply false
     // END: FlutterFire Configuration
     // Updated to the latest stable Kotlin version to match the Stripe package's requirements.
     id "org.jetbrains.kotlin.android" version "2.0.0" apply false
+=======
+    id "com.android.application" version "8.1.0" apply false
+    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
 }
 
 include ":app"

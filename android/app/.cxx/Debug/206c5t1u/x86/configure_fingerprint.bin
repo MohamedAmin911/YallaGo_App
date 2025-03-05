@@ -2,6 +2,7 @@ C/C++ Structured Loga
 _
 ]E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\additional_project_files.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	¢ÇðØ2 ·«”•Ö2^
 \
 ZE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\android_gradle_build.json	¢ÇðØ2¡ »«”•Ö2c
@@ -26,3 +27,29 @@ Z
 XE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\symbol_folder_index.txt	¢ÇðØ2O Ç«”•Ö2O
 M
 KE:\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt	¢ÇðØ2§ ëçÇ’Ö2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	‹¬”¥Ö2 ·«”•Ö2^
+\
+ZE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\android_gradle_build.json	‹¬”¥Ö2¡ »«”•Ö2c
+a
+_E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\android_gradle_build_mini.json	‹¬”¥Ö2¸ Æ«”•Ö2P
+N
+LE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\build.ninja	‹¬”¥Ö2ž« Öª”•Ö2T
+R
+PE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\build.ninja.txt	‹¬”¥Ö2Y
+W
+UE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\build_file_index.txt	‹¬”¥Ö2K È«”•Ö2Z
+X
+VE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\compile_commands.json	‹¬”¥Ö2^
+\
+ZE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\compile_commands.json.bin	‹¬”¥Ö2	d
+b
+`E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\metadata_generation_command.txt	‹¬”¥Ö2
+± Æ«”•Ö2W
+U
+SE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\prefab_config.json	‹¬”¥Ö2( Ç«”•Ö2\
+Z
+XE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\206c5t1u\x86\symbol_folder_index.txt	‹¬”¥Ö2O Ç«”•Ö2O
+M
+KE:\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt	Œ¬”¥Ö2§ ëçÇ’Ö2
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))

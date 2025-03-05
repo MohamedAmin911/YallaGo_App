@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 buildscript {
     // This block defines project-wide settings.
     // We are setting the Kotlin version to be compatible with the Stripe package.
@@ -13,6 +14,8 @@ buildscript {
     }
 }
 
+=======
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
 allprojects {
     repositories {
         google()

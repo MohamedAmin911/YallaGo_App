@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -31,6 +32,12 @@ void main() async {
 
   Stripe.publishableKey = KapiKeys.stripePublishableKey;
   await Stripe.instance.applySettings();
+=======
+import 'package:taxi_app/common/extensions.dart';
+import 'package:taxi_app/view/auth/splash_view.dart';
+
+void main() {
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
   runApp(const MyApp());
 }
 
@@ -39,6 +46,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(create: (context) => AuthCubit()),
@@ -68,6 +76,18 @@ class MyApp extends StatelessWidget {
               // const AuthGate(),
             );
           }),
+=======
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Taxi App',
+      theme: ThemeData(
+        fontFamily: "NunitoSans",
+        scaffoldBackgroundColor: TColor.bg,
+        colorScheme: ColorScheme.fromSeed(seedColor: TColor.primary),
+        useMaterial3: false,
+      ),
+      home: const SplashView(),
+>>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
     );
   }
 }
