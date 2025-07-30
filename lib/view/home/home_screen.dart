@@ -256,6 +256,21 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
+              const Divider(height: 24),
+
+              // --- NEW: Trip Details Row ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildTripDetail(
+                      icon: Icons.directions_car, value: state.estimatedPrice),
+                  _buildTripDetail(
+                      icon: Icons.social_distance, value: state.distance),
+                  _buildTripDetail(
+                      icon: Icons.timer_outlined, value: state.duration),
+                ],
+              ),
+              const Divider(height: 24),
               // Confirm Ride button
               RoundButton(
                 title: "Confirm Ride",
@@ -373,5 +388,19 @@ class HomeScreen extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Widget _buildTripDetail({required IconData icon, required String value}) {
+    return Column(
+      children: [
+        Icon(icon, color: KColor.primary, size: 25.sp),
+        SizedBox(height: 4.h),
+        Text(value,
+            style: appStyle(
+                size: 14.sp,
+                color: KColor.primary,
+                fontWeight: FontWeight.bold)),
+      ],
+    );
   }
 }

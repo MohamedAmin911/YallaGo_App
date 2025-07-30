@@ -28,11 +28,7 @@ class HomeMapReady extends HomeState {
   });
 
   @override
-  List<Object?> get props => [
-        currentPosition,
-        currentAddress,
-        markers,
-      ];
+  List<Object?> get props => [currentPosition, currentAddress, markers];
 }
 
 // State after a destination has been selected and a route is displayed
@@ -42,6 +38,10 @@ class HomeRouteReady extends HomeState {
   final String destinationAddress;
   final Set<Marker> markers;
   final Set<Polyline> polylines;
+  // --- NEW FIELDS ---
+  final String distance;
+  final String duration;
+  final String estimatedPrice;
 
   const HomeRouteReady({
     required this.pickupPosition,
@@ -49,11 +49,22 @@ class HomeRouteReady extends HomeState {
     required this.destinationAddress,
     required this.markers,
     required this.polylines,
+    required this.distance,
+    required this.duration,
+    required this.estimatedPrice,
   });
 
   @override
-  List<Object?> get props =>
-      [pickupPosition, pickupAddress, destinationAddress, markers, polylines];
+  List<Object?> get props => [
+        pickupPosition,
+        pickupAddress,
+        destinationAddress,
+        markers,
+        polylines,
+        distance,
+        duration,
+        estimatedPrice
+      ];
 }
 
 // State for handling any errors

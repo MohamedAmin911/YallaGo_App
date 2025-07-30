@@ -18,7 +18,6 @@ class HomeCubit extends Cubit<HomeState> {
   final Dio _dio = Dio();
   Position? _currentUserPosition;
 
-  // Store loaded icons to avoid reloading them constantly
   BitmapDescriptor? _pickupIcon;
   BitmapDescriptor? _destinationIcon;
 
@@ -26,112 +25,103 @@ class HomeCubit extends Cubit<HomeState> {
     _mapController = controller;
   }
 
-  /// Loads the initial map and starts listening for real-time location updates.
   Future<void> loadCurrentUserLocation() async {
     try {
       emit(HomeLoading());
 
-      // Load the custom marker icons from assets
       _pickupIcon ??= await _bitmapDescriptorFromAsset(KImage.homeIcon, 90);
       _destinationIcon ??=
           await _bitmapDescriptorFromAsset(KImage.destinationIcon, 100);
 
-      // 1. Get the initial position to show the map quickly
       _currentUserPosition = await _determinePosition();
-      LatLng initialLatLng = LatLng(
+      final userLatLng = LatLng(
           _currentUserPosition!.latitude, _currentUserPosition!.longitude);
-      String address = await _getAddressFromLatLng(initialLatLng);
+      final address = await _getAddressFromLatLng(userLatLng);
 
-      final initialMarker = Marker(
+      final pickupMarker = Marker(
         markerId: const MarkerId('currentLocation'),
-        position: initialLatLng,
+        position: userLatLng,
         icon: _pickupIcon!,
       );
+      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(userLatLng, 16));
 
-      _mapController
-          ?.animateCamera(CameraUpdate.newLatLngZoom(initialLatLng, 16));
       emit(HomeMapReady(
-        currentPosition: initialLatLng,
+        currentPosition: userLatLng,
         currentAddress: address,
-        markers: {initialMarker},
+        markers: {pickupMarker},
       ));
 
-      // 2. Start listening for continuous location updates
-      const LocationSettings locationSettings = LocationSettings(
+      const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
+        distanceFilter: 10, // Update every 10 meters
       );
 
       _positionStreamSubscription =
           Geolocator.getPositionStream(locationSettings: locationSettings)
-              .listen(
-        (Position position) async {
-          final currentState = state;
-          _currentUserPosition = position;
-          final newLatLng = LatLng(position.latitude, position.longitude);
+              .listen((Position position) async {
+        final currentState = state;
+        _currentUserPosition = position;
+        final newLatLng = LatLng(position.latitude, position.longitude);
 
-          if (currentState is HomeMapReady) {
-            // If we are just tracking the user, update their position
-            final newAddress = await _getAddressFromLatLng(newLatLng);
-            final updatedMarker = Marker(
-              markerId: const MarkerId('currentLocation'),
-              position: newLatLng,
-              icon: _pickupIcon!,
-            );
+        if (currentState is HomeMapReady) {
+          final newAddress = await _getAddressFromLatLng(newLatLng);
+          final updatedMarker = Marker(
+            markerId: const MarkerId('currentLocation'),
+            position: newLatLng,
+            icon: _pickupIcon!,
+          );
 
-            _mapController
-                ?.animateCamera(CameraUpdate.newLatLngZoom(newLatLng, 16));
+          emit(HomeMapReady(
+            currentPosition: newLatLng,
+            currentAddress: newAddress,
+            markers: {updatedMarker},
+          ));
+        } else if (currentState is HomeRouteReady) {
+          final destinationLatLng = currentState.markers
+              .firstWhere((m) => m.markerId.value == 'destination')
+              .position;
 
-            emit(HomeMapReady(
-              currentPosition: newLatLng,
-              currentAddress: newAddress,
-              markers: {updatedMarker},
-            ));
-          } else if (currentState is HomeRouteReady) {
-            // If a route is active, recalculate the polyline with the new position.
+          // Recalculate everything when the user moves during a planned route
+          final routeDetails =
+              await _getRouteFromOSRM(newLatLng, destinationLatLng);
+          if (routeDetails == null) return;
 
-            // 1. Get the original destination from the state
-            final destinationLatLng = currentState.markers
-                .firstWhere((m) => m.markerId.value == 'destination')
-                .position;
+          final newPolylinePoints = routeDetails['polyline'] as List<LatLng>;
+          final distanceInMeters = routeDetails['distance'] as double;
+          final durationInSeconds = routeDetails['duration'] as double;
+          final price = _calculatePrice(distanceInMeters, durationInSeconds);
+          final distanceKm = (distanceInMeters / 1000).toStringAsFixed(1);
+          final durationMinutes = (durationInSeconds / 60).ceil();
 
-            // 2. Recalculate the route
-            final newPolylinePoints =
-                await _getRouteFromOSRM(newLatLng, destinationLatLng);
-            if (newPolylinePoints.isEmpty) return; // If route fails, do nothing
+          final newRoutePolyline = Polyline(
+            polylineId: const PolylineId('route'),
+            color: KColor.primary,
+            points: newPolylinePoints,
+            width: 5,
+          );
 
-            final newRoutePolyline = Polyline(
-              polylineId: const PolylineId('route'),
-              color: KColor.primary,
-              points: newPolylinePoints,
-              width: 5,
-            );
+          final updatedPickupMarker = Marker(
+            markerId: const MarkerId('pickup'),
+            position: newLatLng,
+            icon: _pickupIcon!,
+          );
 
-            // 3. Update the pickup marker
-            final updatedPickupMarker = Marker(
-              markerId: const MarkerId('pickup'),
-              position: newLatLng,
-              icon: _pickupIcon!,
-            );
-
-            // 4. Emit the new state with the updated route and markers
-            emit(HomeRouteReady(
-              pickupPosition: newLatLng,
-
-              // Keep the original pickup address constant
-              pickupAddress: currentState.pickupAddress,
-              destinationAddress: currentState.destinationAddress,
-              // Keep the original destination marker
-              markers: {
-                updatedPickupMarker,
-                currentState.markers
-                    .firstWhere((m) => m.markerId.value == 'destination')
-              },
-              polylines: {newRoutePolyline},
-            ));
-          }
-        },
-      );
+          emit(HomeRouteReady(
+            pickupPosition: newLatLng,
+            pickupAddress: currentState.pickupAddress,
+            destinationAddress: currentState.destinationAddress,
+            markers: {
+              updatedPickupMarker,
+              currentState.markers
+                  .firstWhere((m) => m.markerId.value == 'destination')
+            },
+            polylines: {newRoutePolyline},
+            distance: "$distanceKm km",
+            duration: "$durationMinutes min",
+            estimatedPrice: "EGP ${price.toStringAsFixed(2)}",
+          ));
+        }
+      });
     } catch (e) {
       emit(HomeError(message: "Failed to get location: ${e.toString()}"));
     }
@@ -157,8 +147,18 @@ class HomeCubit extends Cubit<HomeState> {
         pickupAddress = startState.pickupAddress;
       }
 
-      final polylinePoints = await _getRouteFromOSRM(pickupLatLng, destination);
-      if (polylinePoints.isEmpty) throw Exception("Could not find a route.");
+      final routeDetails = await _getRouteFromOSRM(pickupLatLng, destination);
+      if (routeDetails == null) {
+        throw Exception("Could not find a route.");
+      }
+
+      final polylinePoints = routeDetails['polyline'] as List<LatLng>;
+      final distanceInMeters = routeDetails['distance'] as double;
+      final durationInSeconds = routeDetails['duration'] as double;
+
+      final price = _calculatePrice(distanceInMeters, durationInSeconds);
+      final distanceKm = (distanceInMeters / 1000).toStringAsFixed(1);
+      final durationMinutes = (durationInSeconds / 60).ceil();
 
       final routePolyline = Polyline(
         polylineId: const PolylineId('route'),
@@ -179,7 +179,7 @@ class HomeCubit extends Cubit<HomeState> {
       _mapController?.animateCamera(
         CameraUpdate.newLatLngBounds(
           _boundsFromLatLngList([pickupLatLng, destination]),
-          100.0,
+          150.0,
         ),
       );
 
@@ -189,6 +189,9 @@ class HomeCubit extends Cubit<HomeState> {
         destinationAddress: destinationAddress,
         markers: {pickupMarker, destMarker},
         polylines: {routePolyline},
+        distance: "$distanceKm km",
+        duration: "$durationMinutes min",
+        estimatedPrice: "EGP ${price.toStringAsFixed(2)}",
       ));
     } catch (e) {
       emit(HomeError(message: "Failed to plan route: ${e.toString()}"));
@@ -206,7 +209,22 @@ class HomeCubit extends Cubit<HomeState> {
     return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
 
-  Future<List<LatLng>> _getRouteFromOSRM(LatLng start, LatLng end) async {
+  double _calculatePrice(double distanceInMeters, double durationInSeconds) {
+    const double baseFare = 10.0;
+    const double pricePerKm = 2.5;
+    const double pricePerMinute = 0.5;
+
+    final double distanceInKm = distanceInMeters / 1000;
+    final double durationInMinutes = durationInSeconds / 60;
+
+    final price = baseFare +
+        (distanceInKm * pricePerKm) +
+        (durationInMinutes * pricePerMinute);
+    return price;
+  }
+
+  Future<Map<String, dynamic>?> _getRouteFromOSRM(
+      LatLng start, LatLng end) async {
     final url =
         'http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=polyline';
 
@@ -214,13 +232,18 @@ class HomeCubit extends Cubit<HomeState> {
       final response = await _dio.get(url);
       if (response.statusCode == 200) {
         final data = response.data;
-        final geometry = data['routes'][0]['geometry'] as String;
-        return _decodePolyline(geometry);
+        final route = data['routes'][0];
+        final geometry = route['geometry'] as String;
+        return {
+          'polyline': _decodePolyline(geometry),
+          'distance': route['distance'],
+          'duration': route['duration'],
+        };
       }
     } catch (e) {
       print("Error getting route from OSRM: $e");
     }
-    return [];
+    return null;
   }
 
   List<LatLng> _decodePolyline(String encoded) {
@@ -284,15 +307,25 @@ class HomeCubit extends Cubit<HomeState> {
       );
       if (placemarks.isNotEmpty) {
         final Placemark place = placemarks.first;
-        if (place.street != null &&
-            place.street!.isNotEmpty &&
-            !place.street!.contains('+')) {
-          return "${place.street}, ${place.locality}";
+
+        final street = place.street ?? '';
+        final subLocality = place.subLocality ?? '';
+        final locality = place.locality ?? '';
+
+        if (street.isNotEmpty && !street.contains('+')) {
+          return "$street, $locality";
         }
-        return "${place.subLocality}, ${place.locality}";
+        if (subLocality.isNotEmpty) {
+          return "$subLocality, $locality";
+        }
+        if (locality.isNotEmpty) {
+          return locality;
+        }
+        return place.name ?? "Unnamed Location";
       }
       return "Unknown Location";
     } catch (e) {
+      print("Error getting address: $e");
       return "Could not fetch address.";
     }
   }
