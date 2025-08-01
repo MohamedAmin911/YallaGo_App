@@ -11,7 +11,7 @@ class KColor {
   static Color get lightGray => const Color(0xffDADEE3);
   static Color get lightWhite => const Color(0xffF2F5F7);
 
-  static Color get red => const Color(0xffF4586C);
+  static Color get red => const Color.fromARGB(255, 223, 52, 75);
 
   static Color get bg => Colors.white;
 }

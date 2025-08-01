@@ -1,6 +1,9 @@
 class KImage {
   static const String logo = 'assets/images/Logo.png';
   static const String logo2 = 'assets/images/Logo2.png';
+  static const String logo3 = 'assets/images/logo3.png';
+  static const String logo4 = 'assets/images/logo4.png';
+  static const String logo5 = 'assets/images/logo5.png';
   static const String stripeLogo = 'assets/images/stripe.png';
   static const String paymentIcon = 'assets/images/payment.png';
   static const String paymentIcon1 = 'assets/images/payment2.png';

@@ -57,10 +57,9 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
 
   void _startResendTimer() {
     _timer?.cancel();
-    _timerNotifier.value = 60; // Reset the timer
+    _timerNotifier.value = 60; 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timerNotifier.value > 0) {
-        // Just update the value, don't call setState
         _timerNotifier.value--;
       } else {
         _timer?.cancel();
@@ -75,7 +74,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
   }
 
   void _resendCode() {
-    // Tell the cubit to resend the OTP
     context.read<AuthCubit>().sendOtp(widget.phoneNumber);
     _startResendTimer();
   }
@@ -128,7 +126,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header text
                 Padding(
                   padding: EdgeInsets.only(top: 62.h, left: 24.w),
                   child: Text("OTP Verification",
@@ -138,7 +135,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
                           fontWeight: FontWeight.w800)),
                 ),
                 SizedBox(height: 10.h),
-                // Sub text
                 Padding(
                   padding: EdgeInsets.only(left: 24.w),
                   child: Text("Enter the 6-digit code sent to you at",
@@ -147,7 +143,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
                           color: KColor.secondaryText,
                           fontWeight: FontWeight.w500)),
                 ),
-                // Phone number and edit
                 Padding(
                   padding: EdgeInsets.only(left: 24.w),
                   child: Row(

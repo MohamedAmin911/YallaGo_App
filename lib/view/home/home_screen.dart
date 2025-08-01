@@ -16,7 +16,6 @@ import 'package:taxi_app/view/home/destination_search_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  // This function handles the navigation to the search screen
   Future<void> _navigateToSearch(BuildContext context, LatLng position) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
@@ -38,7 +37,6 @@ class HomeScreen extends StatelessWidget {
       child: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedOut) {
-            // When the user is logged out, go back to the AuthGate
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => const AuthGate()),
               (route) => false,
@@ -53,10 +51,7 @@ class HomeScreen extends StatelessWidget {
                 builder: (context, state) {
                   return Stack(
                     children: [
-                      // --- Google Map ---
                       _buildGoogleMap(context, state),
-
-                      // --- Loading or Error UI ---
                       if (state is HomeLoading)
                         Center(
                             child: CircularProgressIndicator(
@@ -64,11 +59,7 @@ class HomeScreen extends StatelessWidget {
                         )),
                       if (state is HomeError)
                         Center(child: Text(state.message)),
-
-                      // --- Top UI (Menu button) ---
                       _buildTopUI(context),
-
-                      // --- Bottom Panel ---
                       _buildBottomPanel(context, state),
                     ],
                   );
@@ -81,7 +72,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Builds the Google Map widget based on the current state
   Widget _buildGoogleMap(BuildContext context, HomeState state) {
     Set<Marker> markers = {};
     Set<Polyline> polylines = {};
@@ -108,7 +98,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Decides which bottom panel to show based on the state
   Widget _buildBottomPanel(BuildContext context, HomeState state) {
     if (state is HomeMapReady) {
       return _buildSearchPanel(context, state);
@@ -116,8 +105,7 @@ class HomeScreen extends StatelessWidget {
     if (state is HomeRouteReady) {
       return _buildConfirmationPanel(context, state);
     }
-    return const SizedBox
-        .shrink(); // Return empty space for initial/loading states
+    return const SizedBox.shrink();
   }
 
   Widget _buildSearchPanel(BuildContext context, HomeMapReady state) {
@@ -155,8 +143,6 @@ class HomeScreen extends StatelessWidget {
                         KImage.destinationIcon,
                         width: 20.w,
                       ),
-                      // Icon(Icons.location_on,
-                      //     color: KColor.primary, size: 30.sp),
                     ],
                   ),
                 ),
@@ -186,7 +172,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Panel to show after a route has been selected, styled consistently.
   Widget _buildConfirmationPanel(BuildContext context, HomeRouteReady state) {
     return Positioned(
       left: 0,
@@ -203,7 +188,6 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Top indicator line
               Container(
                 width: 40.w,
                 height: 4.h,
@@ -213,11 +197,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16.h),
-              // Location fields with visual connector
               IntrinsicHeight(
                 child: Row(
                   children: [
-                    // Visual connector
                     Padding(
                       padding: EdgeInsets.only(top: 15.h, bottom: 8.h),
                       child: Column(
@@ -232,8 +214,6 @@ class HomeScreen extends StatelessWidget {
                             KImage.destinationIcon,
                             width: 20.w,
                           ),
-                          // Icon(Icons.location_on,
-                          //     color: KColor.primary, size: 30.sp),
                         ],
                       ),
                     ),
@@ -257,8 +237,6 @@ class HomeScreen extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
               const Divider(height: 24),
-
-              // --- NEW: Trip Details Row ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -271,7 +249,6 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const Divider(height: 24),
-              // Confirm Ride button
               RoundButton(
                 title: "Confirm Ride",
                 onPressed: () {},
@@ -284,31 +261,26 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Helper widget to create the styled location input fields.
   Widget _buildLocationField({
     required String text,
     bool isHint = false,
     required VoidCallback onTap,
   }) {
-    // Use a controller to set the text
     final controller = TextEditingController(text: text);
 
-    // A TextField gives us perfect alignment and scrolling for free
     return TextField(
       maxLines: 1,
       textAlign: TextAlign.left,
       controller: controller,
-      readOnly: true, // This makes the field uneditable
-      onTap: onTap, // This makes the whole field tappable
+      readOnly: true,
+      onTap: onTap,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.grey[200], // Or your KColor.bg
-        // Remove the border to make it look like a container
+        fillColor: Colors.grey[200],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(22.r),
           borderSide: BorderSide.none,
         ),
-        // Adjust padding as needed
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         hintText: isHint ? text : null,
@@ -326,7 +298,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Builds the floating menu button
   Widget _buildTopUI(BuildContext context) {
     return SafeArea(
       child: Padding(
@@ -351,39 +322,103 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Builds the side navigation drawer
   Widget _buildAppDrawer() {
     return Builder(builder: (context) {
       return Drawer(
+        backgroundColor: KColor.bg,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+          bottomRight: Radius.circular(22.r),
+          topRight: Radius.circular(22.r),
+        )),
         child: ListView(
+          addRepaintBoundaries: false,
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(color: KColor.primary),
-              child: const Text('Taxi App',
-                  style: TextStyle(color: Colors.white, fontSize: 24)),
+              padding: EdgeInsets.all(40.w),
+              curve: Curves.bounceIn,
+              decoration: BoxDecoration(
+                  color: KColor.primary,
+                  borderRadius: BorderRadius.only(
+                    // bottomRight: Radius.circular(22.r),
+                    topRight: Radius.circular(22.r),
+                  )),
+              child: Image.asset(KImage.logo4),
+
+              // Text('Taxi App',
+              //     style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
+              leading: Icon(
+                Icons.person,
+                color: KColor.placeholder,
+                size: 25.sp,
+              ),
+              title: Text(
+                'Profile',
+                style: appStyle(
+                    size: 15.sp,
+                    color: KColor.placeholder,
+                    fontWeight: FontWeight.bold),
+              ),
               onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Icons.payment),
-              title: const Text('Payment'),
+              leading: Icon(
+                Icons.payment,
+                color: KColor.placeholder,
+                size: 25.sp,
+              ),
+              title: Text(
+                'Payment',
+                style: appStyle(
+                    size: 15.sp,
+                    color: KColor.placeholder,
+                    fontWeight: FontWeight.bold),
+              ),
               onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Ride History'),
+              leading: Icon(
+                Icons.history,
+                color: KColor.placeholder,
+                size: 25.sp,
+              ),
+              title: Text(
+                'Ride History',
+                style: appStyle(
+                    size: 15.sp,
+                    color: KColor.placeholder,
+                    fontWeight: FontWeight.bold),
+              ),
               onTap: () {},
             ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Sign Out'),
-              onTap: () => context.read<AuthCubit>().signOut(),
+            const SizedBox(height: 400),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15.w),
+              child: RoundButton(
+                  title: "SIGN OUT",
+                  onPressed: () {
+                    context.read<AuthCubit>().signOut();
+                  },
+                  color: KColor.placeholder),
             ),
+            // ListTile(
+            //   leading: Icon(
+            //     Icons.logout,
+            //     color: KColor.secondaryText,
+            //     size: 25.sp,
+            //   ),
+            //   title: Text(
+            //     'Sign Out',
+            //     style: appStyle(
+            //         size: 15.sp,
+            //         color: KColor.secondaryText,
+            //         fontWeight: FontWeight.bold),
+            //   ),
+            //   onTap: () => context.read<AuthCubit>().signOut(),
+            // ),
           ],
         ),
       );

@@ -42,34 +42,38 @@ class _SignUpOrLoginViewState extends State<SignUpOrLoginView> {
           SafeArea(
             child: Column(
               children: [
+                SizedBox(height: 250.h),
                 Image.asset(
-                  KImage.logo2,
-                  width: 200.w,
+                  KImage.logo4,
+                  width: 300.w,
                 ),
-                const Spacer(),
+                // const Spacer(),
+                SizedBox(height: 150.h),
+
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: RoundButton(
                     color: KColor.primary,
-                    title: "Sign In",
+                    title: "SIGN IN",
                     onPressed: () {
                       context.push(const EnterMobileNumberViewLogin());
                     },
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(top: 15.h, bottom: 24.h),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: TextButton(
                     onPressed: () {
                       context.push(const EnterMobileNumberView());
                     },
                     child: Text(
-                      "Sign Up",
+                      "SIGN UP",
                       style: appStyle(
                         color: KColor.primaryTextW,
                         size: 16.r,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

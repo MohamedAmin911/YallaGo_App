@@ -53,7 +53,7 @@ class HomeCubit extends Cubit<HomeState> {
 
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Update every 10 meters
+        distanceFilter: 10,
       );
 
       _positionStreamSubscription =
@@ -81,7 +81,6 @@ class HomeCubit extends Cubit<HomeState> {
               .firstWhere((m) => m.markerId.value == 'destination')
               .position;
 
-          // Recalculate everything when the user moves during a planned route
           final routeDetails =
               await _getRouteFromOSRM(newLatLng, destinationLatLng);
           if (routeDetails == null) return;

@@ -25,36 +25,29 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkPrerequisites() async {
-    // Record the start time
     final startTime = DateTime.now();
 
-    // Perform all the checks
     final allChecksPassed = await _runAllChecks();
     if (!mounted) return;
 
     if (allChecksPassed) {
-      // Calculate how long the checks took
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
       const minDisplayTime = Duration(seconds: 3);
 
-      // If the checks finished faster than 2 seconds, wait for the remainder
       if (duration < minDisplayTime) {
         final remainingTime = minDisplayTime - duration;
         await Future.delayed(remainingTime);
       }
 
       if (!mounted) return;
-      // If all checks pass, navigate to the main app
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const AuthGate()),
       );
     }
   }
 
-  /// Runs all prerequisite checks and returns true if they all pass.
   Future<bool> _runAllChecks() async {
-    // 1. Check Internet Connection
     final connectivityResult = await (Connectivity().checkConnectivity());
     if (!mounted) return false;
     if (connectivityResult.contains(ConnectivityResult.none)) {
@@ -65,7 +58,6 @@ class _SplashScreenState extends State<SplashScreen> {
       return false;
     }
 
-    // 2. Check Location Services
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!mounted) return false;
     if (!serviceEnabled) {
@@ -98,14 +90,13 @@ class _SplashScreenState extends State<SplashScreen> {
       return false;
     }
 
-    // If all checks passed
     return true;
   }
 
   void _showErrorDialog(String title, String content) {
     showDialog(
       context: context,
-      barrierDismissible: false, // User must interact with the dialog
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           titleTextStyle: appStyle(
@@ -145,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(KImage.logo, width: 300.w),
+            Image.asset(KImage.logo3, width: 300.w),
             SizedBox(height: 30.h),
             CircularProgressIndicator(color: KColor.primary),
           ],

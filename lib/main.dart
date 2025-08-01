@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
           builder: (_, child) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-              title: 'Taxi App',
+              title: 'YallaGo',
               theme: ThemeData(
                 fontFamily: "NunitoSans",
                 scaffoldBackgroundColor: KColor.bg,

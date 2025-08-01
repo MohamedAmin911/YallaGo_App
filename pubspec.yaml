@@ -59,6 +59,7 @@ dependencies:
   equatable:
   dio:
   connectivity_plus:
+  flutter_launcher_icons:
 
 dev_dependencies:
   flutter_test:
@@ -129,3 +130,11 @@ flutter_native_splash:
     color_dark: "#fcbd01"
     icon_background_color: "#fcbd01"
     icon_background_color_dark: "#fcbd01"
+
+
+# Add this entire section at the end of your pubspec.yaml
+flutter_launcher_icons:
+  android: "launcher_icon" # The name of the icon file for Android
+  ios: true
+  image_path: "assets/images/ll2.png" # The path to your main logo file
+  min_sdk_android: 23 # Your project's min SDK version
