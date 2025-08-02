@@ -11,7 +11,7 @@ import 'package:taxi_app/bloc/customer/customer_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
-import 'package:taxi_app/view/auth/add_payment_method_screen.dart';
+import 'package:taxi_app/view/auth/customer_auth/add_payment_method_screen.dart';
 import 'package:taxi_app/view/widgets/create_profile_screen_widgets/customer_input_fields.dart';
 import 'package:taxi_app/view/widgets/auth_widgets/terms_And_conditions.dart';
 

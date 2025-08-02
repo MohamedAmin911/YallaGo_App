@@ -3,15 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/auth/auth_states.dart';
-import 'package:taxi_app/bloc/home/home_cubit.dart';
-import 'package:taxi_app/bloc/home/home_states.dart';
+import 'package:taxi_app/bloc/customer/home/home_cubit.dart';
+import 'package:taxi_app/bloc/customer/home/home_states.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
-import 'package:taxi_app/view/home/destination_search_screen.dart';
+import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

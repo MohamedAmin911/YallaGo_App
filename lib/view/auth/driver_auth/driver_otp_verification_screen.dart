@@ -11,18 +11,19 @@ import 'package:taxi_app/bloc/customer/customer_cubit.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
-import 'package:taxi_app/view/auth/create_profile_screen.dart';
-import 'package:taxi_app/view/auth/enter_mobile_number_screen.dart';
-import 'package:taxi_app/view/home/home_screen.dart';
+import 'package:taxi_app/view/auth/customer_auth/enter_mobile_number_screen.dart';
+import 'package:taxi_app/view/auth/driver_auth/driver_create_profile_screen.dart';
+import 'package:taxi_app/view/driver%20home/driver_home_screen.dart';
 
-class OtpVerificationView extends StatefulWidget {
-  const OtpVerificationView({super.key, required this.phoneNumber});
+class DriverOtpVerificationView extends StatefulWidget {
+  const DriverOtpVerificationView({super.key, required this.phoneNumber});
   final String phoneNumber;
   @override
-  State<OtpVerificationView> createState() => _OtpVerificationViewState();
+  State<DriverOtpVerificationView> createState() =>
+      _DriverOtpVerificationViewState();
 }
 
-class _OtpVerificationViewState extends State<OtpVerificationView>
+class _DriverOtpVerificationViewState extends State<DriverOtpVerificationView>
     with CodeAutoFill {
   final TextEditingController _codeController = TextEditingController();
   Timer? _timer;
@@ -57,7 +58,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
 
   void _startResendTimer() {
     _timer?.cancel();
-    _timerNotifier.value = 60; 
+    _timerNotifier.value = 60;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timerNotifier.value > 0) {
         _timerNotifier.value--;
@@ -101,12 +102,12 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Welcome back!")),
               );
-              context.pushRlacement(const HomeScreen());
+              context.pushRlacement(const DriverHomeScreen());
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Success!")),
               );
-              context.pushRlacement(const CreateProfileScreen());
+              context.pushRlacement(const DriverCreateProfileScreen());
             }
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(

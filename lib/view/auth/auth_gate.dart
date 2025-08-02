@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taxi_app/bloc/customer/customer_cubit.dart';
-import 'package:taxi_app/view/auth/signup_or_login_screen.dart';
-import 'package:taxi_app/view/home/home_screen.dart';
+import 'package:taxi_app/view/auth/customer_or_driver_screen.dart';
+import 'package:taxi_app/view/customer%20home/home_screen.dart';
 
 /// A widget that acts as a gate, deciding which screen to show on app startup
 /// based on the user's authentication state.
@@ -42,7 +42,7 @@ class _AuthGateState extends State<AuthGate> {
       // Navigate them to the phone number entry screen.
       // The initState of that screen will handle loading the "Remember Me" number.
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const SignUpOrLoginView()),
+        MaterialPageRoute(builder: (_) => const CustomerOrDriverScreen()),
         (route) => false,
       );
     }
