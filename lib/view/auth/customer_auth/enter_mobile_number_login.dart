@@ -28,38 +28,38 @@ class _EnterMobileNumberViewLoginState
   String _countryCode = '+20'; // Default to Egypt
   bool _rememberMe = false; // State for the checkbox
   // Keys for local storage
-  static const String _phoneKey = 'saved_phone_number';
-  static const String _countryCodeKey = 'saved_country_code';
+  // static const String _phoneKey = 'saved_phone_number';
+  // static const String _countryCodeKey = 'saved_country_code';
   @override
   void initState() {
     super.initState();
-    _loadSavedPhoneNumber();
+    // _loadSavedPhoneNumber();
   }
 
-  Future<void> _loadSavedPhoneNumber() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedPhone = prefs.getString(_phoneKey);
-    print("Saved Phone: $savedPhone");
-    final savedCountryCode = prefs.getString(_countryCodeKey);
-    if (savedPhone != null) {
-      setState(() {
-        _phoneController.text = savedPhone;
-        _countryCode = savedCountryCode ?? '+20';
-        _rememberMe = true;
-      });
-    }
-  }
+  // Future<void> _loadSavedPhoneNumber() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final savedPhone = prefs.getString(_phoneKey);
+  //   print("Saved Phone: $savedPhone");
+  //   final savedCountryCode = prefs.getString(_countryCodeKey);
+  //   if (savedPhone != null) {
+  //     setState(() {
+  //       _phoneController.text = savedPhone;
+  //       _countryCode = savedCountryCode ?? '+20';
+  //       _rememberMe = true;
+  //     });
+  //   }
+  // }
 
-  Future<void> _handleRememberMe(String phoneNumber, String countryCode) async {
+  Future<void> _handleRememberMe() async {
     final prefs = await SharedPreferences.getInstance();
     if (_rememberMe) {
-      await prefs.setString(_phoneKey, phoneNumber);
-      await prefs.setString(_countryCodeKey, countryCode);
+      // await prefs.setString(_phoneKey, phoneNumber);
+      // await prefs.setString(_countryCodeKey, countryCode);
       await prefs.setBool('rememberMe', _rememberMe);
     } else {
       await prefs.setBool('rememberMe', _rememberMe);
-      await prefs.remove(_phoneKey);
-      await prefs.remove(_countryCodeKey);
+      // await prefs.remove(_phoneKey);
+      // await prefs.remove(_countryCodeKey);
     }
   }
 
@@ -77,7 +77,7 @@ class _EnterMobileNumberViewLoginState
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() ?? false) {
       final completeNumber = '$_countryCode${_phoneController.text.trim()}';
-      _handleRememberMe(_phoneController.text.trim(), _countryCode);
+      _handleRememberMe();
       context.read<AuthCubit>().sendOtp(completeNumber);
     }
   }
