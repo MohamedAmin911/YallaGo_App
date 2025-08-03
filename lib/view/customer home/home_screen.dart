@@ -331,9 +331,8 @@ class HomeScreen extends StatelessWidget {
           bottomRight: Radius.circular(22.r),
           topRight: Radius.circular(22.r),
         )),
-        child: ListView(
-          addRepaintBoundaries: false,
-          padding: EdgeInsets.zero,
+        child: Column(
+          // padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
               padding: EdgeInsets.all(40.w),
@@ -394,9 +393,9 @@ class HomeScreen extends StatelessWidget {
               ),
               onTap: () {},
             ),
-            const SizedBox(height: 400),
+            const Spacer(),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15.w),
+              padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
               child: RoundButton(
                   title: "SIGN OUT",
                   onPressed: () {

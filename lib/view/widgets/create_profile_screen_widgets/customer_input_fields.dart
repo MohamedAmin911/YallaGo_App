@@ -7,7 +7,7 @@ class CustomerInputFields extends StatelessWidget {
     super.key,
     required TextEditingController firstNameController,
     required TextEditingController lastNameController,
-    required TextEditingController homeAddressController,
+    TextEditingController? homeAddressController,
     required TextEditingController email,
   })  : _firstNameController = firstNameController,
         _lastNameController = lastNameController,

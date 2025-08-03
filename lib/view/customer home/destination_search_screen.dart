@@ -32,8 +32,7 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
   @override
   void initState() {
     super.initState();
-    // --- NEW LOGIC ---
-    // Load the search history from the CustomerCubit when the screen opens
+
     final customerState = context.read<CustomerCubit>().state;
     if (customerState is CustomerLoaded) {
       _searchHistory = customerState.customer.searchHistory ?? [];
@@ -179,7 +178,6 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                 final showHistory = _searchController.text.trim().isEmpty &&
                     _predictions.isEmpty;
 
-                // Update history in real-time if the customer data changes
                 if (state is CustomerLoaded) {
                   _searchHistory = state.customer.searchHistory ?? [];
                 }
@@ -193,14 +191,14 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                         padding: EdgeInsets.symmetric(
                             horizontal: 16.w, vertical: 5.h),
                         child: Material(
-                          elevation: 0.5,
+                          elevation: 0.2,
                           borderRadius: BorderRadius.circular(22.r),
                           child: ListTile(
                             titleTextStyle: appStyle(
                                 size: 16.sp,
                                 color: KColor.primaryText,
                                 fontWeight: FontWeight.w500),
-                            tileColor: KColor.lightWhite,
+                            tileColor: KColor.lightWhite.withOpacity(0.2),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(22.r)),
                             leading: Icon(

@@ -60,6 +60,7 @@ dependencies:
   dio:
   connectivity_plus:
   flutter_launcher_icons:
+  flutter_colorpicker:
 
 dev_dependencies:
   flutter_test:
@@ -115,21 +116,21 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-flutter_native_splash:
-  android: true
-  ios: true
-  web: false
-  color: "#fcbd01"
-  color_dark: "#fcbd01"
-  image: assets/images/Logo.png
-  image_dark: assets/images/Logo.png
-  android_12:
-    image: assets/images/Logo.png
-    image_dark: assets/images/Logo.png
-    color: "#fcbd01" 
-    color_dark: "#fcbd01"
-    icon_background_color: "#fcbd01"
-    icon_background_color_dark: "#fcbd01"
+# flutter_native_splash:
+#   android: true
+#   ios: true
+#   web: false
+#   color: "#fcbd01"
+#   color_dark: "#fcbd01"
+#   image: assets/images/Logo.png
+#   image_dark: assets/images/Logo.png
+#   android_12:
+#     image: assets/images/Logo.png
+#     image_dark: assets/images/Logo.png
+#     color: "#fcbd01" 
+#     color_dark: "#fcbd01"
+#     icon_background_color: "#fcbd01"
+#     icon_background_color_dark: "#fcbd01"
 
 
 # Add this entire section at the end of your pubspec.yaml
