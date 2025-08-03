@@ -10,7 +10,7 @@ import 'package:taxi_app/bloc/auth/auth_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
-import 'package:taxi_app/view/auth/driver_auth/driver_otp_verification_screen.dart';
+import 'package:taxi_app/view/auth/driver_auth/driver_otp_screen.dart';
 import 'package:taxi_app/view/widgets/auth_widgets/phone_no_input_field.dart';
 
 class DriverEnterMobileNumberViewLogin extends StatefulWidget {
@@ -55,8 +55,9 @@ class _DriverEnterMobileNumberViewLoginState
     if (_rememberMe) {
       await prefs.setString(_phoneKey, phoneNumber);
       await prefs.setString(_countryCodeKey, countryCode);
+      await prefs.setBool('rememberMe', _rememberMe);
     } else {
-      // If the user unchecks the box, clear the saved data
+      await prefs.setBool('rememberMe', _rememberMe);
       await prefs.remove(_phoneKey);
       await prefs.remove(_countryCodeKey);
     }

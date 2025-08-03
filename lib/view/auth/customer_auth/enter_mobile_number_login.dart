@@ -55,8 +55,9 @@ class _EnterMobileNumberViewLoginState
     if (_rememberMe) {
       await prefs.setString(_phoneKey, phoneNumber);
       await prefs.setString(_countryCodeKey, countryCode);
+      await prefs.setBool('rememberMe', _rememberMe);
     } else {
-      // If the user unchecks the box, clear the saved data
+      await prefs.setBool('rememberMe', _rememberMe);
       await prefs.remove(_phoneKey);
       await prefs.remove(_countryCodeKey);
     }

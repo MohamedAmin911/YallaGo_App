@@ -152,6 +152,7 @@ class DriverCubit extends Cubit<DriverState> {
 
   /// Checks if a driver document exists in Firestore for a given UID.
   Future<bool> checkIfDriverExists(String uid) async {
+    print("Checking if driver exists: $uid");
     try {
       final doc = await _db.collection('drivers').doc(uid).get();
       return doc.exists;

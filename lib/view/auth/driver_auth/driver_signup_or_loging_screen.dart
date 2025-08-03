@@ -5,8 +5,8 @@ import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
-import 'package:taxi_app/view/auth/driver_auth/driver_enter_mobile_number_login_screen.dart';
 import 'package:taxi_app/view/auth/driver_auth/driver_enter_mobile_number_view.dart';
+import 'package:taxi_app/view/auth/driver_auth/driver_login_screen.dart';
 
 class DriverSignupOrLogingScreen extends StatefulWidget {
   const DriverSignupOrLogingScreen({super.key});
