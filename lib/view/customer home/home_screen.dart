@@ -6,6 +6,7 @@ import 'package:taxi_app/bloc/auth/auth_states.dart';
 import 'package:taxi_app/bloc/customer/home/home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/home_states.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
@@ -251,7 +252,30 @@ class HomeScreen extends StatelessWidget {
               const Divider(height: 24),
               RoundButton(
                 title: "Confirm Ride",
-                onPressed: () {},
+                onPressed: () {
+                  final authState = context.read<AuthCubit>().state;
+                  final customerUid =
+                      (authState is AuthLoggedIn) ? authState.user.uid : null;
+
+                  if (customerUid != null) {
+                    // Extract the raw price value
+                    final price = double.tryParse(
+                            state.estimatedPrice.replaceAll("EGP ", "")) ??
+                        0.0;
+
+                    context.read<TripCubit>().createTripRequest(
+                          customerUid: customerUid,
+                          pickupPosition: state.pickupPosition,
+                          pickupAddress: state.pickupAddress,
+                          destinationPosition: state.markers
+                              .firstWhere(
+                                  (m) => m.markerId.value == 'destination')
+                              .position,
+                          destinationAddress: state.destinationAddress,
+                          estimatedFare: price,
+                        );
+                  }
+                },
                 color: KColor.primary,
               )
             ],

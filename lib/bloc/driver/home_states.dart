@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:taxi_app/data_models/trip_model.dart';
 
 abstract class DriverHomeState extends Equatable {
   const DriverHomeState();
@@ -40,4 +41,14 @@ class DriverHomeError extends DriverHomeState {
 
   @override
   List<Object> get props => [message];
+}
+
+class NewTripAvailable extends DriverHomeState {
+  final TripModel trip;
+  const NewTripAvailable({required this.trip});
+}
+
+class TripAccepted extends DriverHomeState {
+  final TripModel trip;
+  const TripAccepted({required this.trip});
 }

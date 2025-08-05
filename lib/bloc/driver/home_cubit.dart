@@ -8,6 +8,7 @@ import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/data_models/driver_model.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
+import 'package:taxi_app/data_models/trip_model.dart';
 
 class DriverHomeCubit extends Cubit<DriverHomeState> {
   final String driverUid;
@@ -16,7 +17,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _carIcon;
   DriverHomeCubit({required this.driverUid}) : super(DriverHomeLoading());
-
+  StreamSubscription? _tripRequestSubscription;
   void setMapController(GoogleMapController controller) {
     _mapController = controller;
   }
@@ -93,6 +94,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
 
         _mapController?.animateCamera(CameraUpdate.newLatLng(newLatLng));
         emit(DriverOnline(currentPosition: newLatLng, markers: {driverMarker}));
+        _listenForTripRequests();
       });
     } catch (e) {
       emit(DriverHomeError(message: e.toString()));
@@ -107,6 +109,8 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       await _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
 
+      await _tripRequestSubscription?.cancel();
+      _tripRequestSubscription = null;
       // 2. Update status in Firestore
       await _db
           .collection('drivers')
@@ -120,6 +124,43 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
               LatLng(lastPosition.latitude, lastPosition.longitude)));
     } catch (e) {
       emit(DriverHomeError(message: e.toString()));
+    }
+  }
+
+  void _listenForTripRequests() {
+    _tripRequestSubscription?.cancel();
+    _tripRequestSubscription = _db
+        .collection('trips')
+        .where('status', isEqualTo: 'searching')
+        .snapshots()
+        .listen((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        // For now, just take the first available trip request
+        final tripDoc = querySnapshot.docs.first;
+        final trip = TripModel.fromMap(tripDoc.data(), tripDoc.id);
+
+        // and handle multiple requests.
+
+        emit(NewTripAvailable(trip: trip));
+      }
+    });
+  }
+
+  Future<void> acceptTrip(TripModel trip) async {
+    try {
+      // In a real app, use a Cloud Function and a Transaction here to prevent race conditions
+      await _db.collection('trips').doc(trip.tripId).update({
+        'status': 'driver_accepted',
+        'driverUid': driverUid,
+      });
+
+      // Stop listening for other requests
+      await _tripRequestSubscription?.cancel();
+      _tripRequestSubscription = null;
+
+      emit(TripAccepted(trip: trip));
+    } catch (e) {
+      emit(DriverHomeError(message: "Failed to accept trip: $e"));
     }
   }
 

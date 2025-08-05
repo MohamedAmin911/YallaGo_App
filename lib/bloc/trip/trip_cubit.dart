@@ -1,36 +1,11 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:meta/meta.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:taxi_app/bloc/trip/trip_states.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 
 // --- STATES for Trip ---
-@immutable
-abstract class TripState {}
-
-class TripInitial extends TripState {}
-
-class TripLoading extends TripState {}
-
-class TripCreated extends TripState {
-  final String tripId;
-  TripCreated({required this.tripId});
-}
-
-class TripInProgress extends TripState {
-  final TripModel trip;
-  TripInProgress({required this.trip});
-}
-
-class TripHistoryLoaded extends TripState {
-  final List<TripModel> trips;
-  TripHistoryLoaded({required this.trips});
-}
-
-class TripError extends TripState {
-  final String message;
-  TripError({required this.message});
-}
 
 // --- CUBIT for Trip ---
 class TripCubit extends Cubit<TripState> {
@@ -38,6 +13,40 @@ class TripCubit extends Cubit<TripState> {
   StreamSubscription? _tripSubscription;
 
   TripCubit() : super(TripInitial());
+
+  /// Creates a new trip request in Firestore with a "searching" status.
+  Future<void> createTripRequest({
+    required String customerUid,
+    required LatLng pickupPosition,
+    required String pickupAddress,
+    required LatLng destinationPosition,
+    required String destinationAddress,
+    required double estimatedFare,
+  }) async {
+    emit(TripLoading());
+    try {
+      final trip = TripModel(
+        customerUid: customerUid,
+        pickupAddress: pickupAddress,
+        pickupLocation:
+            GeoPoint(pickupPosition.latitude, pickupPosition.longitude),
+        destinationAddress: destinationAddress,
+        destinationLocation: GeoPoint(
+            destinationPosition.latitude, destinationPosition.longitude),
+        status: "searching", // This is the key status for drivers to find
+        requestedAt: Timestamp.now(),
+        estimatedFare: estimatedFare,
+      );
+
+      final docRef = await _db.collection('trips').add(trip.toMap());
+
+      // Emit a success state with the new trip's ID
+      emit(TripCreated(tripId: docRef.id));
+    } catch (e) {
+      emit(
+          TripError(message: "Failed to create trip request: ${e.toString()}"));
+    }
+  }
 
   /// Creates a new trip request in Firestore.
   Future<void> createTrip(TripModel trip) async {

@@ -4,12 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
+import 'package:taxi_app/bloc/auth/auth_states.dart';
 import 'package:taxi_app/bloc/driver/home_cubit.dart';
 import 'package:taxi_app/bloc/driver/home_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
+import 'package:taxi_app/data_models/trip_model.dart';
+import 'package:taxi_app/view/auth/auth_gate.dart';
 
 class DriverHomeScreen extends StatelessWidget {
   const DriverHomeScreen({super.key});
@@ -27,37 +30,56 @@ class DriverHomeScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           DriverHomeCubit(driverUid: user.uid)..loadInitialState(),
-      child: Scaffold(
-        drawer: _buildAppDrawer(),
-        body: Builder(
-          builder: (context) {
-            return BlocBuilder<DriverHomeCubit, DriverHomeState>(
-              builder: (context, state) {
-                bool isOnline = state is DriverOnline;
-                return Stack(
-                  children: [
-                    // --- Google Map ---
-                    _buildGoogleMap(context, state),
-                    !isOnline
-                        ? Container(color: KColor.primaryText.withOpacity(0.7))
-                        : Container(),
+      child: BlocListener<DriverHomeCubit, DriverHomeState>(
+        listener: (context, state) {
+          if (state is NewTripAvailable) {
+            // Show a dialog when a new trip is available
+            _showRideRequestDialog(context, state.trip);
+          }
+        },
+        child: BlocListener<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state is AuthLoggedOut) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const AuthGate()),
+                (route) => false,
+              );
+            }
+          },
+          child: Scaffold(
+            drawer: _buildAppDrawer(),
+            body: Builder(
+              builder: (context) {
+                return BlocBuilder<DriverHomeCubit, DriverHomeState>(
+                  builder: (context, state) {
+                    bool isOnline = state is DriverOnline;
+                    return Stack(
+                      children: [
+                        // --- Google Map ---
+                        _buildGoogleMap(context, state),
+                        !isOnline
+                            ? Container(
+                                color: KColor.primaryText.withOpacity(0.7))
+                            : Container(),
 
-                    // --- Loading and Error UI ---
-                    if (state is DriverHomeLoading)
-                      Center(
-                          child: CircularProgressIndicator(
-                        color: KColor.primary,
-                      )),
-                    if (state is DriverHomeError)
-                      Center(child: Text(state.message)),
+                        // --- Loading and Error UI ---
+                        if (state is DriverHomeLoading)
+                          Center(
+                              child: CircularProgressIndicator(
+                            color: KColor.primary,
+                          )),
+                        if (state is DriverHomeError)
+                          Center(child: Text(state.message)),
 
-                    // --- Top UI (Online/Offline Toggle) ---
-                    _buildTopPanel(context, state),
-                  ],
+                        // --- Top UI (Online/Offline Toggle) ---
+                        _buildTopPanel(context, state),
+                      ],
+                    );
+                  },
                 );
               },
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -245,5 +267,47 @@ class DriverHomeScreen extends StatelessWidget {
         ),
       );
     });
+  }
+
+  void _showRideRequestDialog(BuildContext context, TripModel trip) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("New Ride Request"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("From: ${trip.pickupAddress}"),
+              Text("To: ${trip.destinationAddress}"),
+              const SizedBox(height: 8),
+              Text(
+                "Fare: EGP ${trip.estimatedFare.toStringAsFixed(2)}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("DECLINE"),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                // TODO: Handle decline logic
+              },
+            ),
+            ElevatedButton(
+              child: const Text("ACCEPT"),
+              onPressed: () {
+                // Tell the cubit the driver accepted the trip
+                context.read<DriverHomeCubit>().acceptTrip(trip);
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
