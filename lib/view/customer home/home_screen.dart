@@ -403,21 +403,6 @@ class HomeScreen extends StatelessWidget {
                   },
                   color: KColor.placeholder),
             ),
-            // ListTile(
-            //   leading: Icon(
-            //     Icons.logout,
-            //     color: KColor.secondaryText,
-            //     size: 25.sp,
-            //   ),
-            //   title: Text(
-            //     'Sign Out',
-            //     style: appStyle(
-            //         size: 15.sp,
-            //         color: KColor.secondaryText,
-            //         fontWeight: FontWeight.bold),
-            //   ),
-            //   onTap: () => context.read<AuthCubit>().signOut(),
-            // ),
           ],
         ),
       );
