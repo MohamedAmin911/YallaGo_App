@@ -68,4 +68,27 @@ class TripModel {
       ratingForDriver: map['ratingForDriver'] as int?,
     );
   }
+
+  TripModel copyWith({
+    String? tripId,
+    String? customerUid,
+    String? driverUid,
+    String? status,
+    // ... add all other fields here
+  }) {
+    return TripModel(
+        tripId: tripId ?? this.tripId,
+        customerUid: customerUid ?? this.customerUid,
+        driverUid: driverUid ?? this.driverUid,
+        status: status ?? this.status,
+        destinationAddress: destinationAddress,
+        destinationLocation: destinationLocation,
+        pickupAddress: pickupAddress,
+        pickupLocation: pickupLocation,
+        estimatedFare: estimatedFare,
+        actualFare: actualFare,
+        paymentMethodId: paymentMethodId,
+        ratingForDriver: ratingForDriver,
+        requestedAt: requestedAt);
+  }
 }

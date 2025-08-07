@@ -6,7 +6,7 @@ abstract class DriverHomeState extends Equatable {
   const DriverHomeState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 /// The initial state when the screen is loading.
@@ -26,14 +26,49 @@ class DriverOffline extends DriverHomeState {
 class DriverOnline extends DriverHomeState {
   final LatLng currentPosition;
   final Set<Marker> markers;
+  final TripModel? newTripRequest;
 
-  const DriverOnline({required this.currentPosition, required this.markers});
+  const DriverOnline({
+    required this.currentPosition,
+    required this.markers,
+    this.newTripRequest,
+  });
 
   @override
-  List<Object> get props => [currentPosition, markers];
+  List<Object?> get props => [currentPosition, markers, newTripRequest];
 }
 
-/// State for handling any errors.
+/// State for when the driver has arrived at the customer's pickup location.
+class DriverArrivedAtPickup extends DriverHomeState {
+  final TripModel acceptedTrip;
+  final Set<Marker> markers;
+
+  const DriverArrivedAtPickup({
+    required this.acceptedTrip,
+    required this.markers,
+  });
+
+  @override
+  List<Object?> get props => [acceptedTrip, markers];
+}
+
+class DriverEnRouteToPickup extends DriverHomeState {
+  final LatLng driverPosition;
+  final TripModel acceptedTrip;
+  final Set<Marker> markers;
+  final Set<Polyline> polylines; // The route to the customer
+
+  const DriverEnRouteToPickup({
+    required this.driverPosition,
+    required this.acceptedTrip,
+    required this.markers,
+    required this.polylines,
+  });
+
+  @override
+  List<Object?> get props => [driverPosition, acceptedTrip, markers, polylines];
+}
+
 class DriverHomeError extends DriverHomeState {
   final String message;
 
@@ -43,12 +78,12 @@ class DriverHomeError extends DriverHomeState {
   List<Object> get props => [message];
 }
 
-class NewTripAvailable extends DriverHomeState {
-  final TripModel trip;
-  const NewTripAvailable({required this.trip});
-}
+// class NewTripAvailable extends DriverHomeState {
+//   final TripModel trip;
+//   const NewTripAvailable({required this.trip});
+// }
 
-class TripAccepted extends DriverHomeState {
-  final TripModel trip;
-  const TripAccepted({required this.trip});
-}
+// class TripAccepted extends DriverHomeState {
+//   final TripModel trip;
+//   const TripAccepted({required this.trip});
+// }

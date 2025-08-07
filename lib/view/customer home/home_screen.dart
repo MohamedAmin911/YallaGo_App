@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -253,18 +254,21 @@ class HomeScreen extends StatelessWidget {
               RoundButton(
                 title: "Confirm Ride",
                 onPressed: () {
-                  final authState = context.read<AuthCubit>().state;
-                  final customerUid =
-                      (authState is AuthLoggedIn) ? authState.user.uid : null;
+                  final user = FirebaseAuth.instance.currentUser;
 
-                  if (customerUid != null) {
+                  // final authState = context.read<AuthCubit>().state;
+                  // final customerUid =
+                  //     (authState is AuthLoggedIn) ? authState.user.uid : null;
+
+                  if (user != null) {
                     // Extract the raw price value
+
                     final price = double.tryParse(
                             state.estimatedPrice.replaceAll("EGP ", "")) ??
                         0.0;
 
                     context.read<TripCubit>().createTripRequest(
-                          customerUid: customerUid,
+                          customerUid: user.uid,
                           pickupPosition: state.pickupPosition,
                           pickupAddress: state.pickupAddress,
                           destinationPosition: state.markers
@@ -275,6 +279,7 @@ class HomeScreen extends StatelessWidget {
                           estimatedFare: price,
                         );
                   }
+                  print("sssssssssssssssssssssssssssssssssssssss");
                 },
                 color: KColor.primary,
               )

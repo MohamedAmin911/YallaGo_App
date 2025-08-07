@@ -22,63 +22,129 @@ class DriverHomeScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      // This is a safeguard in case something goes wrong.
       return const Scaffold(
           body: Center(child: Text("Error: User not found.")));
     }
-    // Use a BlocBuilder to reactively listen to the AuthCubit's state.
     return BlocProvider(
       create: (context) =>
           DriverHomeCubit(driverUid: user.uid)..loadInitialState(),
-      child: BlocListener<DriverHomeCubit, DriverHomeState>(
+      child: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
-          if (state is NewTripAvailable) {
-            // Show a dialog when a new trip is available
-            _showRideRequestDialog(context, state.trip);
+          if (state is AuthLoggedOut) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AuthGate()),
+              (route) => false,
+            );
           }
         },
-        child: BlocListener<AuthCubit, AuthState>(
-          listener: (context, state) {
-            if (state is AuthLoggedOut) {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthGate()),
-                (route) => false,
-              );
-            }
-          },
-          child: Scaffold(
-            drawer: _buildAppDrawer(),
-            body: Builder(
-              builder: (context) {
-                return BlocBuilder<DriverHomeCubit, DriverHomeState>(
-                  builder: (context, state) {
-                    bool isOnline = state is DriverOnline;
-                    return Stack(
-                      children: [
-                        // --- Google Map ---
-                        _buildGoogleMap(context, state),
-                        !isOnline
-                            ? Container(
-                                color: KColor.primaryText.withOpacity(0.7))
-                            : Container(),
+        child: Scaffold(
+          drawer: _buildAppDrawer(),
+          body: Builder(
+            builder: (context) {
+              return BlocListener<DriverHomeCubit, DriverHomeState>(
+                  listenWhen: (previous, current) {
+                // Check the state before the update. Was there already a trip request?
+                final wasTripAvailable =
+                    previous is DriverOnline && previous.newTripRequest != null;
 
-                        // --- Loading and Error UI ---
-                        if (state is DriverHomeLoading)
-                          Center(
-                              child: CircularProgressIndicator(
-                            color: KColor.primary,
-                          )),
-                        if (state is DriverHomeError)
-                          Center(child: Text(state.message)),
+                // Check the state after the update. Is there a trip request now?
+                final isTripAvailable =
+                    current is DriverOnline && current.newTripRequest != null;
 
-                        // --- Top UI (Online/Offline Toggle) ---
+                // Only trigger the listener if a trip was NOT available before, but IS available now.
+                // This makes it fire only once when the new request first appears.
+                return !wasTripAvailable && isTripAvailable;
+              }, listener: (context, state) {
+                if (state is DriverOnline && state.newTripRequest != null) {
+                  _showRideRequestDialog(context, state.newTripRequest!);
+                }
+              }, child: BlocBuilder<DriverHomeCubit, DriverHomeState>(
+                builder: (context, state) {
+                  bool isOnline = state is DriverOnline ||
+                      state is DriverEnRouteToPickup ||
+                      state is DriverArrivedAtPickup;
+                  return Stack(
+                    children: [
+                      // --- Google Map ---
+                      _buildGoogleMap(context, state),
+                      !isOnline
+                          ? Container(
+                              color: KColor.primaryText.withOpacity(0.7))
+                          : Container(),
+
+                      // --- Loading and Error UI ---
+                      if (state is DriverHomeLoading)
+                        Center(
+                            child: CircularProgressIndicator(
+                          color: KColor.primary,
+                        )),
+                      if (state is DriverHomeError)
+                        Center(child: Text(state.message)),
+
+                      // --- Top UI (Online/Offline Toggle) ---
+                      _buildTopPanel(context, state),
+
+                      // Only show the top panel if a trip is NOT in progress
+                      if (state is! DriverEnRouteToPickup)
                         _buildTopPanel(context, state),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
+
+                      // Show the "en route" panel when a trip is accepted
+                      if (state is DriverEnRouteToPickup)
+                        _buildEnRouteToPickupPanel(context, state),
+                    ],
+                  );
+                },
+              ));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnRouteToPickupPanel(
+      BuildContext context, DriverEnRouteToPickup state) {
+    final trip = state.acceptedTrip;
+    // final pickupLocation =
+    //     LatLng(trip.pickupLocation.latitude, trip.pickupLocation.longitude);
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        elevation: 5,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Picking up Customer",
+                  style: appStyle(
+                      size: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: KColor.primary)),
+              const SizedBox(height: 8),
+              Text(trip.pickupAddress, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: RoundButton(
+                      title: "ARRIVED",
+                      onPressed: () {
+                        // TODO: Implement arrived at pickup logic
+                      },
+                      color: KColor.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -88,12 +154,16 @@ class DriverHomeScreen extends StatelessWidget {
   Widget _buildGoogleMap(BuildContext context, DriverHomeState state) {
     LatLng initialPosition = const LatLng(30.0444, 31.2357); // Default to Cairo
     Set<Marker> markers = {};
-
+    Set<Polyline> polylines = {};
     if (state is DriverOffline) {
       initialPosition = state.lastKnownPosition;
     } else if (state is DriverOnline) {
       initialPosition = state.currentPosition;
       markers = state.markers;
+    } else if (state is DriverEnRouteToPickup) {
+      initialPosition = state.driverPosition;
+      markers = state.markers;
+      polylines = state.polylines;
     }
 
     return GoogleMap(
@@ -105,12 +175,15 @@ class DriverHomeScreen extends StatelessWidget {
       onMapCreated: (controller) =>
           context.read<DriverHomeCubit>().setMapController(controller),
       markers: markers,
+      polylines: polylines,
       myLocationButtonEnabled: false,
     );
   }
 
   Widget _buildTopPanel(BuildContext context, DriverHomeState state) {
-    bool isOnline = state is DriverOnline;
+    bool isOnline = state is DriverOnline ||
+        state is DriverEnRouteToPickup ||
+        state is DriverArrivedAtPickup;
 
     return SafeArea(
       child: Padding(
@@ -269,42 +342,126 @@ class DriverHomeScreen extends StatelessWidget {
     });
   }
 
+  Widget _buildLocationField({
+    required String text,
+    bool isHint = false,
+    required VoidCallback onTap,
+  }) {
+    final controller = TextEditingController(text: text);
+
+    return TextField(
+      maxLines: 1,
+      textAlign: TextAlign.left,
+      controller: controller,
+      readOnly: true,
+      onTap: onTap,
+      decoration: InputDecoration(
+        // filled: true,
+        // fillColor: Colors.grey[200],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22.r),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        hintText: isHint ? text : null,
+        hintStyle: appStyle(
+          size: 16.sp,
+          color: KColor.placeholder,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      style: appStyle(
+        size: 16.sp,
+        color: isHint ? KColor.placeholder : KColor.primaryText,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  Widget _newRideFields(String text, String fieldName, Color color) {
+    return Container(
+      // padding: EdgeInsets.symmetric(horizontal: 5.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30.r),
+        border: Border.all(color: color, width: 2.w),
+      ),
+      child: Row(
+        children: [
+          Container(
+              width: 70.w,
+              height: 50.h,
+              padding: EdgeInsets.symmetric(vertical: 10.h),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(30.r),
+              ),
+              child: Center(
+                child: Text(
+                  fieldName,
+                  style: appStyle(
+                      size: 18.sp,
+                      color: KColor.bg,
+                      fontWeight: FontWeight.bold),
+                ),
+              )),
+          Expanded(child: _buildLocationField(text: text, onTap: () {}))
+        ],
+      ),
+    );
+  }
+
   void _showRideRequestDialog(BuildContext context, TripModel trip) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text("New Ride Request"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("From: ${trip.pickupAddress}"),
-              Text("To: ${trip.destinationAddress}"),
-              const SizedBox(height: 8),
-              Text(
-                "Fare: EGP ${trip.estimatedFare.toStringAsFixed(2)}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+          title: Text(
+            "New Ride Request",
+            style: appStyle(
+                size: 20.sp,
+                color: KColor.primary,
+                fontWeight: FontWeight.bold),
+          ),
+          content: IntrinsicHeight(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _newRideFields(trip.pickupAddress, "From", KColor.primary),
+                SizedBox(height: 8.h),
+                _newRideFields(trip.destinationAddress, "To", KColor.primary),
+                const SizedBox(height: 8),
+                _newRideFields("${trip.estimatedFare.toStringAsFixed(2)} EGP",
+                    "Fare", Colors.green),
+              ],
+            ),
           ),
           actions: [
-            TextButton(
-              child: const Text("DECLINE"),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                // TODO: Handle decline logic
-              },
-            ),
-            ElevatedButton(
-              child: const Text("ACCEPT"),
-              onPressed: () {
-                // Tell the cubit the driver accepted the trip
-                context.read<DriverHomeCubit>().acceptTrip(trip);
-                Navigator.of(dialogContext).pop();
-              },
-            ),
+            Column(
+              children: [
+                RoundButton(
+                  title: "ACCEPT",
+                  onPressed: () {
+                    context.read<DriverHomeCubit>().acceptTrip(trip);
+                    Navigator.of(dialogContext).pop();
+                  },
+                  color: KColor.primary,
+                ),
+                SizedBox(height: 10.h),
+                RoundButton(
+                  title: "DECLINE",
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    // TODO: Handle decline logic
+                  },
+                  color: KColor.red,
+                ),
+              ],
+            )
           ],
         );
       },

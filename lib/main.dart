@@ -8,6 +8,7 @@ import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/customer/customer_cubit.dart';
 import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/bloc/payment/payment_method_cubit.dart';
+import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/common/api_keys.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<CustomerCubit>(create: (context) => CustomerCubit()),
         BlocProvider<PaymentCubit>(create: (context) => PaymentCubit()),
         BlocProvider<DriverCubit>(create: (context) => DriverCubit()),
+        BlocProvider<TripCubit>(create: (context) => TripCubit()),
       ],
       child: ScreenUtilInit(
           designSize: Size(MediaQuery.of(context).copyWith().size.width,
