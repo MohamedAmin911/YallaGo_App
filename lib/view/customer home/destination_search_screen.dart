@@ -78,13 +78,17 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
     }
   }
 
-  void _onPlaceSelected(String placeId) async {
-    final response =
-        await _places.getDetailsByPlaceId(placeId, sessionToken: _sessionToken);
+  void _onPlaceSelected(Prediction prediction) async {
+    if (prediction.placeId == null) return;
+
+    final response = await _places.getDetailsByPlaceId(prediction.placeId!,
+        sessionToken: _sessionToken);
 
     if (mounted && response.isOkay) {
       final location = response.result.geometry?.location;
-      final address = response.result.formattedAddress;
+
+      // Use the clean description from the prediction for the UI
+      final address = prediction.description;
 
       if (location != null && address != null) {
         final result = {
@@ -92,11 +96,11 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
           'location': LatLng(location.lat, location.lng)
         };
 
-        // Save the selected location to the user's history
+        // --- ADDED BACK: Save the selected location to the user's history ---
         final customerState = context.read<CustomerCubit>().state;
         if (customerState is CustomerLoaded) {
           final searchData = {
-            'address': address,
+            'address': address, // Save the clean address
             'latitude': location.lat,
             'longitude': location.lng,
           };
@@ -104,23 +108,15 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
               .read<CustomerCubit>()
               .addSearchToHistory(customerState.customer.uid, searchData);
         }
+        // --- END FIX ---
 
         Navigator.of(context).pop(result);
       }
-    } else if (mounted) {
-      // --- ADDED: Error Handling ---
-      print("Place Details API Error: ${response.errorMessage}");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(response.errorMessage ?? "Could not get place details."),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
-
-    // A session token is used for one search session and must be regenerated.
-    setState(() => _sessionToken = const Uuid().v4());
+    // Regenerate session token for the next search.
+    if (mounted) {
+      setState(() => _sessionToken = const Uuid().v4());
+    }
   }
 
   @override
@@ -182,8 +178,8 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                   _searchHistory = state.customer.searchHistory ?? [];
                 }
                 return ListView.builder(
-                  itemCount:
-                      showHistory ? _searchHistory.length : _predictions.length,
+                  itemCount: 4,
+                  // showHistory ? _searchHistory.length : _predictions.length,
                   itemBuilder: (context, index) {
                     if (showHistory) {
                       final historyItem = _searchHistory[index];
@@ -248,7 +244,7 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                                   ''),
                               onTap: () {
                                 if (prediction.placeId != null) {
-                                  _onPlaceSelected(prediction.placeId!);
+                                  _onPlaceSelected(prediction);
                                 }
                               }),
                         ),

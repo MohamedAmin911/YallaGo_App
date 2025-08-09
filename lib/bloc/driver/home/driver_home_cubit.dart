@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:taxi_app/bloc/driver/home_states.dart';
+import 'package:taxi_app/bloc/driver/home/driver_home_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/data_models/driver_model.dart';

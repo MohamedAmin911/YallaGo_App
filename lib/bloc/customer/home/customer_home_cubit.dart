@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:taxi_app/bloc/customer/home/home_states.dart';
+import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 
