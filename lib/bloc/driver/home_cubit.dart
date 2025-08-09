@@ -41,8 +41,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   Future<void> loadInitialState() async {
     try {
       _carIcon ??= await _bitmapDescriptorFromAsset(KImage.carYellow, 120);
-      _pickupIcon ??=
-          await _bitmapDescriptorFromAsset(KImage.destinationIcon, 120);
+      _pickupIcon ??= await _bitmapDescriptorFromAsset(KImage.manYellow, 120);
       final doc = await _db.collection('drivers').doc(driverUid).get();
       if (!doc.exists) {
         emit(const DriverHomeError(message: "Driver profile not found."));
@@ -94,7 +93,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       // 3. Now, start listening for future location updates.
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+        distanceFilter: 5,
       );
 
       _positionStreamSubscription =
@@ -314,51 +313,48 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   void _handleEnRouteLocationUpdate(
       Position position, DriverEnRouteToPickup currentState) {
     final newLatLng = LatLng(position.latitude, position.longitude);
-    final trip = currentState.acceptedTrip;
-    final pickupLatLng =
-        LatLng(trip.pickupLocation.latitude, trip.pickupLocation.longitude);
 
-    final distanceInMeters = Geolocator.distanceBetween(
-      newLatLng.latitude,
-      newLatLng.longitude,
-      pickupLatLng.latitude,
-      pickupLatLng.longitude,
-    );
+    // The automatic distance check is now removed.
+    // This function's only job is to update the driver's marker position.
+    final driverMarker = Marker(
+        markerId: const MarkerId('driver'),
+        position: newLatLng,
+        icon: _carIcon!,
+        rotation: position.heading,
+        anchor: const Offset(0.5, 0.5),
+        flat: true);
 
-    if (distanceInMeters < 50) {
-      // If driver is within 50 meters, they have arrived.
-      final driverMarker = Marker(
-          markerId: const MarkerId('driver'),
-          position: newLatLng,
-          icon: _carIcon!);
-      final pickupMarker = Marker(
-          markerId: const MarkerId('pickup'),
-          position: pickupLatLng,
-          icon: _pickupIcon!);
-      emit(DriverArrivedAtPickup(
-        acceptedTrip: trip,
-        markers: {driverMarker, pickupMarker},
-      ));
-    } else {
-      // Otherwise, just update their position on the map
-      final driverMarker = Marker(
-          markerId: const MarkerId('driver'),
-          position: newLatLng,
-          icon: _carIcon!,
-          rotation: position.heading,
-          anchor: const Offset(0.5, 0.5),
-          flat: true);
-      _mapController?.animateCamera(CameraUpdate.newLatLng(newLatLng));
-      emit(DriverEnRouteToPickup(
-        driverPosition: newLatLng,
-        acceptedTrip: trip,
-        markers: {
-          driverMarker,
-          currentState.markers.firstWhere((m) => m.markerId.value == 'pickup')
-        },
-        polylines: currentState.polylines,
-      ));
-    }
+    _mapController?.animateCamera(CameraUpdate.newLatLng(newLatLng));
+
+    emit(DriverEnRouteToPickup(
+      driverPosition: newLatLng,
+      acceptedTrip: currentState.acceptedTrip,
+      markers: {
+        driverMarker,
+        currentState.markers.firstWhere((m) => m.markerId.value == 'pickup')
+      },
+      polylines: currentState.polylines,
+    ));
+  }
+
+  void driverArrivedAtPickup() {
+    final currentState = state;
+    if (currentState is! DriverEnRouteToPickup) return;
+
+    // Stop listening for location updates as they are no longer needed for this stage.
+    _positionStreamSubscription?.cancel();
+    _positionStreamSubscription = null;
+
+    // Update the trip status in Firestore
+    _db.collection('trips').doc(currentState.acceptedTrip.tripId).update({
+      'status': 'driver_arrived',
+    });
+
+    // Emit the new state to update the UI
+    emit(DriverArrivedAtPickup(
+      acceptedTrip: currentState.acceptedTrip,
+      markers: currentState.markers,
+    ));
   }
 
   @override

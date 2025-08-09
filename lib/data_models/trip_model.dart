@@ -14,22 +14,25 @@ class TripModel {
   final double? actualFare;
   final String? paymentMethodId;
   final int? ratingForDriver;
+  final String? customerName;
+  final String? customerImageUrl;
 
-  TripModel({
-    this.tripId,
-    required this.customerUid,
-    this.driverUid,
-    required this.status,
-    required this.requestedAt,
-    required this.pickupAddress,
-    required this.pickupLocation,
-    required this.destinationAddress,
-    required this.destinationLocation,
-    required this.estimatedFare,
-    this.actualFare,
-    this.paymentMethodId,
-    this.ratingForDriver,
-  });
+  TripModel(
+      {this.tripId,
+      required this.customerUid,
+      this.driverUid,
+      required this.status,
+      required this.requestedAt,
+      required this.pickupAddress,
+      required this.pickupLocation,
+      required this.destinationAddress,
+      required this.destinationLocation,
+      required this.estimatedFare,
+      this.actualFare,
+      this.paymentMethodId,
+      this.ratingForDriver,
+      this.customerName,
+      this.customerImageUrl});
 
   /// Converts this TripModel instance into a Map for Firestore.
   Map<String, dynamic> toMap() {
@@ -47,6 +50,8 @@ class TripModel {
       'actualFare': actualFare,
       'paymentMethodId': paymentMethodId,
       'ratingForDriver': ratingForDriver,
+      'customerName': customerName,
+      'customerImageUrl': customerImageUrl
     };
   }
 
@@ -66,6 +71,8 @@ class TripModel {
       actualFare: (map['actualFare'] as num?)?.toDouble(),
       paymentMethodId: map['paymentMethodId'],
       ratingForDriver: map['ratingForDriver'] as int?,
+      customerName: map['customerName'],
+      customerImageUrl: map['customerImageUrl'],
     );
   }
 
@@ -89,6 +96,8 @@ class TripModel {
         actualFare: actualFare,
         paymentMethodId: paymentMethodId,
         ratingForDriver: ratingForDriver,
-        requestedAt: requestedAt);
+        requestedAt: requestedAt,
+        customerName: customerName,
+        customerImageUrl: customerImageUrl);
   }
 }

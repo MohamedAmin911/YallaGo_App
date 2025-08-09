@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/auth/auth_states.dart';
+import 'package:taxi_app/bloc/customer/customer_cubit.dart';
+import 'package:taxi_app/bloc/customer/customer_states.dart';
 import 'package:taxi_app/bloc/customer/home/home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/home_states.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -255,20 +257,19 @@ class HomeScreen extends StatelessWidget {
                 title: "Confirm Ride",
                 onPressed: () {
                   final user = FirebaseAuth.instance.currentUser;
+                  final customerState =
+                      context.read<CustomerCubit>().state; // Get customer state
 
-                  // final authState = context.read<AuthCubit>().state;
-                  // final customerUid =
-                  //     (authState is AuthLoggedIn) ? authState.user.uid : null;
-
-                  if (user != null) {
-                    // Extract the raw price value
-
+                  if (user != null && customerState is CustomerLoaded) {
+                    final customer = customerState.customer;
                     final price = double.tryParse(
                             state.estimatedPrice.replaceAll("EGP ", "")) ??
                         0.0;
 
                     context.read<TripCubit>().createTripRequest(
                           customerUid: user.uid,
+                          customerName: customer.fullName ?? "Customer",
+                          customerImageUrl: customer.profileImageUrl,
                           pickupPosition: state.pickupPosition,
                           pickupAddress: state.pickupAddress,
                           destinationPosition: state.markers
@@ -279,7 +280,6 @@ class HomeScreen extends StatelessWidget {
                           estimatedFare: price,
                         );
                   }
-                  print("sssssssssssssssssssssssssssssssssssssss");
                 },
                 color: KColor.primary,
               )

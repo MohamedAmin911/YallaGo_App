@@ -105,8 +105,6 @@ class DriverHomeScreen extends StatelessWidget {
   Widget _buildEnRouteToPickupPanel(
       BuildContext context, DriverEnRouteToPickup state) {
     final trip = state.acceptedTrip;
-    // final pickupLocation =
-    //     LatLng(trip.pickupLocation.latitude, trip.pickupLocation.longitude);
 
     return Positioned(
       left: 0,
@@ -120,16 +118,85 @@ class DriverHomeScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Picking up Customer",
-                  style: appStyle(
-                      size: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: KColor.primary)),
-              const SizedBox(height: 8),
-              Text(trip.pickupAddress, textAlign: TextAlign.center),
+              // --- Customer Info Row ---
+              Row(
+                children: [
+                  // Customer Profile Picture
+                  CircleAvatar(
+                    radius: 24.r,
+                    // --- THE FIX IS HERE ---
+                    // This check prevents the app from crashing if the URL is null or empty.
+                    backgroundImage: (trip.customerImageUrl != null &&
+                            trip.customerImageUrl!.isNotEmpty)
+                        ? NetworkImage(trip.customerImageUrl!)
+                        : null,
+                    child: (trip.customerImageUrl == null ||
+                            trip.customerImageUrl!.isEmpty)
+                        ? const Icon(Icons.person)
+                        : null,
+                  ),
+                  SizedBox(width: 12.w),
+                  // Customer Name
+                  Expanded(
+                    child: Text(
+                      trip.customerName ??
+                          "Customer", // Use the name from the trip model
+                      style: appStyle(
+                        size: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: KColor.primaryText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+
+              // --- Location Info ---
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    Column(
+                      children: [
+                        Icon(Icons.circle, color: KColor.primary, size: 17.sp),
+                        Expanded(
+                            child:
+                                Container(width: 1.w, color: KColor.primary)),
+                        Icon(Icons.location_on,
+                            color: KColor.primary, size: 20.sp),
+                      ],
+                    ),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("PICKUP",
+                              style: appStyle(
+                                  size: 12.sp,
+                                  color: KColor.secondaryText,
+                                  fontWeight: FontWeight.bold)),
+                          Text(trip.pickupAddress,
+                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                          SizedBox(height: 12.h),
+                          Text("DESTINATION",
+                              style: appStyle(
+                                  size: 12.sp,
+                                  color: KColor.secondaryText,
+                                  fontWeight: FontWeight.bold)),
+                          Text(trip.destinationAddress,
+                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 16),
+
+              // --- Action Buttons ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -137,7 +204,7 @@ class DriverHomeScreen extends StatelessWidget {
                     child: RoundButton(
                       title: "ARRIVED",
                       onPressed: () {
-                        // TODO: Implement arrived at pickup logic
+                        context.read<DriverHomeCubit>().driverArrivedAtPickup();
                       },
                       color: KColor.primary,
                     ),
@@ -164,6 +231,10 @@ class DriverHomeScreen extends StatelessWidget {
       initialPosition = state.driverPosition;
       markers = state.markers;
       polylines = state.polylines;
+    } else if (state is DriverArrivedAtPickup) {
+      // initialPosition = state.driverPosition;
+      markers = state.markers;
+      // polylines = state.polylines;
     }
 
     return GoogleMap(

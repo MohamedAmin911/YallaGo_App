@@ -22,6 +22,8 @@ class TripCubit extends Cubit<TripState> {
     required LatLng destinationPosition,
     required String destinationAddress,
     required double estimatedFare,
+    required String customerName,
+    String? customerImageUrl,
   }) async {
     emit(TripLoading());
     try {
@@ -36,6 +38,8 @@ class TripCubit extends Cubit<TripState> {
         status: "searching", // This is the key status for drivers to find
         requestedAt: Timestamp.now(),
         estimatedFare: estimatedFare,
+        customerName: customerName,
+        customerImageUrl: customerImageUrl,
       );
 
       final docRef = await _db.collection('trips').add(trip.toMap());
