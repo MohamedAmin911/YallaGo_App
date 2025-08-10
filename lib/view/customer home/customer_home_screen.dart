@@ -10,10 +10,12 @@ import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
+import 'package:taxi_app/bloc/trip/trip_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
+import 'package:taxi_app/data_models/driver_model.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
 
@@ -36,6 +38,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- THE FIX IS HERE ---
+    // The MultiBlocProvider is removed. We now use BlocProvider just to create
+    // the HomeCubit for this screen session.
     return BlocProvider(
       create: (context) => HomeCubit()..loadCurrentUserLocation(),
       child: BlocListener<AuthCubit, AuthState>(
@@ -47,29 +52,225 @@ class HomeScreen extends StatelessWidget {
             );
           }
         },
-        child: Scaffold(
-          drawer: _buildAppDrawer(),
-          body: Builder(
-            builder: (context) {
-              return BlocBuilder<HomeCubit, HomeState>(
-                builder: (context, state) {
-                  return Stack(
+        child: BlocListener<TripCubit, TripState>(
+          listener: (context, tripState) {
+            if (tripState is TripCreated) {
+              context.read<HomeCubit>().listenToTripUpdates(tripState.tripId);
+            }
+          },
+          child: Scaffold(
+            drawer: _buildAppDrawer(),
+            body: Builder(
+              builder: (context) {
+                return BlocBuilder<HomeCubit, HomeState>(
+                  builder: (context, state) {
+                    return Stack(
+                      children: [
+                        _buildGoogleMap(context, state),
+                        if (state is HomeLoading ||
+                            state is HomeSearchingForDriver)
+                          const Center(child: CircularProgressIndicator()),
+                        if (state is HomeError)
+                          Center(child: Text(state.message)),
+                        _buildTopUI(context),
+                        _buildBottomPanel(context, state),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchingPanel() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        elevation: 3,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text("Searching for nearby drivers...",
+                  style: appStyle(
+                      color: KColor.primaryText,
+                      fontWeight: FontWeight.bold,
+                      size: 18.sp)),
+              const SizedBox(height: 16),
+              RoundButton(
+                  title: "Cancel Ride", onPressed: () {}, color: KColor.red)
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDriverEnRoutePanel(
+      BuildContext context, HomeDriverEnRoute state) {
+    final driver = state.driver;
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        elevation: 3,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(30.r),
+                    child: driver.profileImageUrl != null
+                        ? Image.network(
+                            driver.profileImageUrl!,
+                            width: 100.w,
+                            height: 100.h,
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildGoogleMap(context, state),
-                      if (state is HomeLoading)
-                        Center(
-                            child: CircularProgressIndicator(
-                          color: KColor.primary,
-                        )),
-                      if (state is HomeError)
-                        Center(child: Text(state.message)),
-                      _buildTopUI(context),
-                      _buildBottomPanel(context, state),
+                      Text(driver.fullName,
+                          style: appStyle(
+                              color: KColor.primary,
+                              fontWeight: FontWeight.bold,
+                              size: 25.sp)),
+                      SizedBox(height: 10.h),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.drive_eta_rounded,
+                            size: 25.sp,
+                            color: KColor.primaryText,
+                          ),
+                          SizedBox(width: 3.w),
+                          SizedBox(
+                            width: 90.w,
+                            child: Text(driver.carModel,
+                                style: appStyle(
+                                    color: KColor.primaryText,
+                                    fontWeight: FontWeight.bold,
+                                    size: 14.sp)),
+                          ),
+                          Icon(
+                            Icons.circle,
+                            size: 20.sp,
+                            color: Color(int.parse(
+                                "0xff${driver.carColor.replaceFirst(RegExp(r'#'), "")}")),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 5.h),
+                      Row(
+                        children: [
+                          Image.asset(
+                            KImage.licensePlate,
+                            width: 25.w,
+                          ),
+                          // Icon(
+                          //   Icons.assignment_ind,
+                          //   size: 20.sp,
+                          //   color: KColor.primaryText,
+                          // ),
+                          Text(" ${driver.licensePlate}",
+                              style: appStyle(
+                                  color: KColor.primaryText,
+                                  fontWeight: FontWeight.bold,
+                                  size: 14.sp)),
+                        ],
+                      ),
                     ],
-                  );
-                },
-              );
-            },
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              RoundButton(
+                  title: "CHAT", onPressed: () {}, color: KColor.primary),
+              const Divider(height: 24),
+              Text("Your driver is on the way!",
+                  style: appStyle(
+                      color: KColor.primaryText,
+                      fontWeight: FontWeight.bold,
+                      size: 15.sp)),
+              SizedBox(height: 5.h),
+              Text("Arriving in ${state.arrivalEta} minutes",
+                  style: appStyle(
+                      color: KColor.placeholder,
+                      fontWeight: FontWeight.w600,
+                      size: 14.sp)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDriverArrivedPanel(
+      BuildContext context, DriverModel driver, String tripId) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.all(20),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        color: KColor.bg,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 40),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Your driver has arrived!",
+                            style: appStyle(
+                                color: KColor.primaryText,
+                                fontWeight: FontWeight.bold,
+                                size: 18.sp)),
+                        Text(
+                          "Meet ${driver.fullName} outside.",
+                          style: appStyle(
+                              color: KColor.placeholder,
+                              fontWeight: FontWeight.w500,
+                              size: 14.sp),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              RoundButton(
+                  title: "CHAT", onPressed: () {}, color: KColor.primary),
+            ],
           ),
         ),
       ),
@@ -85,6 +286,13 @@ class HomeScreen extends StatelessWidget {
     } else if (state is HomeRouteReady) {
       markers = state.markers;
       polylines = state.polylines;
+    } else if (state is HomeDriverEnRoute) {
+      // It now correctly handles the DriverEnRoute state
+      markers = state.markers;
+      polylines = state.polylines;
+    } else if (state is HomeDriverArrived) {
+      // It now correctly handles the DriverArrived state
+      markers = state.markers;
     }
 
     return GoogleMap(
@@ -103,11 +311,21 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildBottomPanel(BuildContext context, HomeState state) {
-    if (state is HomeMapReady) {
-      return _buildSearchPanel(context, state);
+    if (state is HomeSearchingForDriver) {
+      return _buildSearchingPanel();
+    }
+    if (state is HomeDriverEnRoute) {
+      return _buildDriverEnRoutePanel(context, state);
+    }
+    if (state is HomeDriverArrived) {
+      return _buildDriverArrivedPanel(
+          context, state.driver, state.trip.tripId ?? "");
     }
     if (state is HomeRouteReady) {
       return _buildConfirmationPanel(context, state);
+    }
+    if (state is HomeMapReady) {
+      return _buildSearchPanel(context, state);
     }
     return const SizedBox.shrink();
   }

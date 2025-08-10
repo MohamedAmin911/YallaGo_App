@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:taxi_app/data_models/driver_model.dart';
+import 'package:taxi_app/data_models/trip_model.dart';
 
 abstract class HomeState extends Equatable {
   const HomeState();
@@ -59,6 +61,44 @@ class HomeRouteReady extends HomeState {
         duration,
         estimatedPrice
       ];
+}
+
+/// State for when the app is actively searching for a driver.
+class HomeSearchingForDriver extends HomeState {}
+
+/// State for when a driver has accepted the trip and is on their way.
+class HomeDriverEnRoute extends HomeState {
+  final TripModel trip;
+  final DriverModel driver;
+  final Set<Marker> markers;
+  final Set<Polyline> polylines;
+  final String arrivalEta;
+
+  const HomeDriverEnRoute({
+    required this.trip,
+    required this.driver,
+    required this.markers,
+    required this.polylines,
+    required this.arrivalEta,
+  });
+
+  @override
+  List<Object?> get props => [trip, driver, markers, polylines, arrivalEta];
+}
+
+/// State for when the driver has arrived at the pickup location.
+class HomeDriverArrived extends HomeState {
+  final TripModel trip;
+  final DriverModel driver;
+  final Set<Marker> markers;
+  const HomeDriverArrived({
+    required this.trip,
+    required this.driver,
+    required this.markers,
+  });
+
+  @override
+  List<Object?> get props => [trip, driver, markers];
 }
 
 class HomeError extends HomeState {

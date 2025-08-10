@@ -11,12 +11,15 @@ import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/data_models/driver_model.dart';
+import 'package:taxi_app/data_models/trip_model.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionStreamSubscription;
+  StreamSubscription? _tripSubscription;
+  StreamSubscription? _assignedDriverSubscription;
   final Dio _dio = Dio();
   Position? _currentUserPosition;
   StreamSubscription? _nearbyDriversSubscription;
@@ -428,8 +431,158 @@ class HomeCubit extends Cubit<HomeState> {
     });
   }
 
+  void listenToTripUpdates(String tripId) {
+    emit(HomeSearchingForDriver());
+    _tripSubscription?.cancel();
+
+    _tripSubscription = _db
+        .collection('trips')
+        .doc(tripId)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists && snapshot.data() != null) {
+        final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
+
+        if (trip.status == 'driver_accepted' && trip.driverUid != null) {
+          _listenToAssignedDriver(trip);
+          if (_driverIcon == null || _pickupIcon == null) {
+            print("Icons not loaded yet, skipping state update.");
+            return;
+          }
+
+          final driverDoc =
+              await _db.collection('drivers').doc(trip.driverUid).get();
+          if (driverDoc.exists) {
+            final driver = DriverModel.fromMap(driverDoc.data()!);
+
+            final customerPosition = LatLng(
+                trip.pickupLocation.latitude, trip.pickupLocation.longitude);
+            final driverPosition = LatLng(driver.currentLocation!.latitude,
+                driver.currentLocation!.longitude);
+
+            // 2. Create markers for the customer and the accepting driver with custom icons.
+            final customerMarker = Marker(
+                markerId: const MarkerId('pickup'),
+                position: customerPosition,
+                icon: _pickupIcon!);
+            final acceptedDriverMarker = Marker(
+              markerId: MarkerId(driver.uid),
+              position: driverPosition,
+              icon: _driverIcon!,
+            );
+            final routeDetails =
+                await _getRouteFromOSRM(driverPosition, customerPosition);
+            if (routeDetails == null) return;
+            final durationInSeconds = routeDetails['duration'] as double;
+            final durationMinutes = (durationInSeconds / 60).ceil();
+            // 3. Calculate the route from the driver to the customer.
+            // final polylinePoints = await _getRouteFromOSRM(driverPosition, customerPosition);
+            // final routeToPickup = Polyline(
+            //     polylineId: const PolylineId('route_to_pickup'),
+            //     color: KColor.primary,
+            //     points: polylinePoints ?? [],
+            //     width: 5,
+            // );
+
+            // 4. Animate camera to show both driver and customer.
+            _mapController?.animateCamera(
+              CameraUpdate.newLatLngBounds(
+                  _boundsFromLatLngList([driverPosition, customerPosition]),
+                  100.0),
+            );
+
+            emit(HomeDriverEnRoute(
+              trip: trip,
+              driver: driver,
+              markers: {customerMarker, acceptedDriverMarker},
+              polylines: {},
+              arrivalEta: "$durationMinutes min",
+            ));
+          }
+        } else if (trip.status == 'driver_arrived' && trip.driverUid != null) {
+          final driverDoc =
+              await _db.collection('drivers').doc(trip.driverUid).get();
+          if (driverDoc.exists) {
+            final driver = DriverModel.fromMap(driverDoc.data()!);
+            final customerPosition = LatLng(
+                trip.pickupLocation.latitude, trip.pickupLocation.longitude);
+            final driverPosition = LatLng(driver.currentLocation!.latitude,
+                driver.currentLocation!.longitude);
+
+            final customerMarker = Marker(
+                markerId: const MarkerId('pickup'),
+                position: customerPosition,
+                icon: _pickupIcon!);
+            final driverMarker = Marker(
+                markerId: MarkerId(driver.uid),
+                position: driverPosition,
+                icon: _driverIcon!);
+
+            emit(HomeDriverArrived(
+              trip: trip,
+              driver: driver,
+              markers: {
+                customerMarker,
+                driverMarker
+              }, // Pass the markers to the state
+            ));
+          }
+        }
+      }
+    });
+  }
+
+  void _listenToAssignedDriver(TripModel trip) {
+    _assignedDriverSubscription?.cancel();
+    _assignedDriverSubscription = _db
+        .collection('drivers')
+        .doc(trip.driverUid)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists && snapshot.data() != null) {
+        final driver = DriverModel.fromMap(snapshot.data()!);
+        final customerPosition =
+            LatLng(trip.pickupLocation.latitude, trip.pickupLocation.longitude);
+        final driverPosition = LatLng(driver.currentLocation!.latitude,
+            driver.currentLocation!.longitude);
+        final routeDetails =
+            await _getRouteFromOSRM(driverPosition, customerPosition);
+        if (routeDetails == null) return;
+        final durationInSeconds = routeDetails['duration'] as double;
+        final durationMinutes = (durationInSeconds / 60).ceil();
+        // Recalculate the route from the driver's NEW position to the customer
+        // final polylinePoints = await _getRouteFromOSRM(driverPosition, customerPosition);
+        // final routeToPickup = Polyline(
+        //   polylineId: const PolylineId('route_to_pickup'),
+        //   color: Colors.green,
+        //   points: polylinePoints ?? [],
+        //   width: 5,
+        // );
+
+        final customerMarker = Marker(
+            markerId: const MarkerId('pickup'),
+            position: customerPosition,
+            icon: _pickupIcon!);
+        final driverMarker = Marker(
+            markerId: MarkerId(driver.uid),
+            position: driverPosition,
+            icon: _driverIcon!);
+
+        emit(HomeDriverEnRoute(
+          trip: trip,
+          driver: driver,
+          markers: {customerMarker, driverMarker},
+          polylines: {},
+          arrivalEta: "$durationMinutes min",
+        ));
+      }
+    });
+  }
+
   @override
   Future<void> close() {
+    _assignedDriverSubscription?.cancel();
+    _tripSubscription?.cancel();
     _nearbyDriversSubscription?.cancel();
     _positionStreamSubscription?.cancel();
     return super.close();

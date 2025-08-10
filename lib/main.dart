@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/customer/customer_cubit.dart';
+import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/bloc/payment/payment_method_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<PaymentCubit>(create: (context) => PaymentCubit()),
         BlocProvider<DriverCubit>(create: (context) => DriverCubit()),
         BlocProvider<TripCubit>(create: (context) => TripCubit()),
+        // BlocProvider<HomeCubit>(create: (context) => HomeCubit()),
       ],
       child: ScreenUtilInit(
           designSize: Size(MediaQuery.of(context).copyWith().size.width,
