@@ -11,7 +11,7 @@ import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/common_widgets/txt_field_1.dart';
-import 'package:taxi_app/view/customer%20home/home_screen.dart';
+import 'package:taxi_app/view/customer%20home/customer_home_screen.dart';
 
 class AddPaymentMethod extends StatefulWidget {
   const AddPaymentMethod({super.key});

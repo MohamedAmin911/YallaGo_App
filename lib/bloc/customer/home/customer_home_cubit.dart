@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,17 +10,20 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
+import 'package:taxi_app/data_models/driver_model.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());
-
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionStreamSubscription;
   final Dio _dio = Dio();
   Position? _currentUserPosition;
-
+  StreamSubscription? _nearbyDriversSubscription;
+  Set<Marker> _driverMarkers = {};
   BitmapDescriptor? _pickupIcon;
   BitmapDescriptor? _destinationIcon;
+  BitmapDescriptor? _driverIcon;
 
   void setMapController(GoogleMapController controller) {
     _mapController = controller;
@@ -32,7 +36,7 @@ class HomeCubit extends Cubit<HomeState> {
       _pickupIcon ??= await _bitmapDescriptorFromAsset(KImage.homeIcon, 90);
       _destinationIcon ??=
           await _bitmapDescriptorFromAsset(KImage.destinationIcon, 100);
-
+      _driverIcon ??= await _bitmapDescriptorFromAsset(KImage.car2, 100);
       _currentUserPosition = await _determinePosition();
       final userLatLng = LatLng(
           _currentUserPosition!.latitude, _currentUserPosition!.longitude);
@@ -74,7 +78,7 @@ class HomeCubit extends Cubit<HomeState> {
           emit(HomeMapReady(
             currentPosition: newLatLng,
             currentAddress: newAddress,
-            markers: {updatedMarker},
+            markers: {updatedMarker, ..._driverMarkers},
           ));
         } else if (currentState is HomeRouteReady) {
           final destinationLatLng = currentState.markers
@@ -112,7 +116,8 @@ class HomeCubit extends Cubit<HomeState> {
             markers: {
               updatedPickupMarker,
               currentState.markers
-                  .firstWhere((m) => m.markerId.value == 'destination')
+                  .firstWhere((m) => m.markerId.value == 'destination'),
+              ..._driverMarkers,
             },
             polylines: {newRoutePolyline},
             distance: "$distanceKm km",
@@ -121,6 +126,8 @@ class HomeCubit extends Cubit<HomeState> {
           ));
         }
       });
+
+      _listenForNearbyDrivers(userLatLng);
     } catch (e) {
       emit(HomeError(message: "Failed to get location: ${e.toString()}"));
     }
@@ -128,10 +135,11 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> planRoute(LatLng destination, String destinationAddress) async {
     final startState = state;
-    if ((startState is! HomeMapReady && startState is! HomeRouteReady) ||
-        _currentUserPosition == null) {
-      return;
-    }
+    if (startState is! HomeMapReady) return;
+    // if ((startState is! HomeMapReady && startState is! HomeRouteReady) ||
+    //     _currentUserPosition == null) {
+    //   return;
+    // }
 
     try {
       emit(HomeLoading());
@@ -139,13 +147,13 @@ class HomeCubit extends Cubit<HomeState> {
       final pickupLatLng = LatLng(
           _currentUserPosition!.latitude, _currentUserPosition!.longitude);
 
-      String pickupAddress = "";
-      if (startState is HomeMapReady) {
-        pickupAddress = startState.currentAddress;
-      } else if (startState is HomeRouteReady) {
-        pickupAddress = startState.pickupAddress;
-      }
-
+      // String pickupAddress = "";
+      // if (startState is HomeMapReady) {
+      //   pickupAddress = startState.currentAddress;
+      // } else if (startState is HomeRouteReady) {
+      //   pickupAddress = startState.pickupAddress;
+      // }
+      final pickupAddress = startState.currentAddress;
       final routeDetails = await _getRouteFromOSRM(pickupLatLng, destination);
       if (routeDetails == null) {
         throw Exception("Could not find a route.");
@@ -163,7 +171,7 @@ class HomeCubit extends Cubit<HomeState> {
         polylineId: const PolylineId('route'),
         color: KColor.primary,
         points: polylinePoints,
-        width: 5,
+        width: 4,
       );
 
       final pickupMarker = Marker(
@@ -186,7 +194,7 @@ class HomeCubit extends Cubit<HomeState> {
         pickupPosition: pickupLatLng,
         pickupAddress: pickupAddress,
         destinationAddress: destinationAddress,
-        markers: {pickupMarker, destMarker},
+        markers: {pickupMarker, destMarker, ..._driverMarkers},
         polylines: {routePolyline},
         distance: "$distanceKm km",
         duration: "$durationMinutes min",
@@ -275,12 +283,6 @@ class HomeCubit extends Cubit<HomeState> {
     return points;
   }
 
-  @override
-  Future<void> close() {
-    _positionStreamSubscription?.cancel();
-    return super.close();
-  }
-
   LatLngBounds _boundsFromLatLngList(List<LatLng> list) {
     double? x0, x1, y0, y1;
     for (LatLng latLng in list) {
@@ -351,5 +353,85 @@ class HomeCubit extends Cubit<HomeState> {
     }
 
     return await Geolocator.getCurrentPosition();
+  }
+
+  void _listenForNearbyDrivers(LatLng customerPosition) {
+    _nearbyDriversSubscription?.cancel();
+    _nearbyDriversSubscription = _db
+        .collection('drivers')
+        .where('isOnline', isEqualTo: true) // Only get drivers who are online
+        .snapshots()
+        .listen((querySnapshot) {
+      _driverMarkers.clear();
+      const double radiusInMeters = 5000; // 5km radius
+
+      for (var doc in querySnapshot.docs) {
+        final driver = DriverModel.fromMap(doc.data());
+        if (driver.currentLocation != null) {
+          final driverPosition = LatLng(
+            driver.currentLocation!.latitude,
+            driver.currentLocation!.longitude,
+          );
+
+          // Calculate the distance
+          final distance = Geolocator.distanceBetween(
+            customerPosition.latitude,
+            customerPosition.longitude,
+            driverPosition.latitude,
+            driverPosition.longitude,
+          );
+
+          // Only add the marker if the driver is within the radius
+          if (distance <= radiusInMeters) {
+            _driverMarkers.add(
+              Marker(
+                markerId: MarkerId(driver.uid),
+                position: driverPosition,
+                icon: _driverIcon!,
+                anchor: const Offset(0.5, 0.5),
+                flat: true,
+              ),
+            );
+          }
+        }
+      }
+
+      // Combine the user's marker with the new driver markers
+      final currentState = state;
+      if (currentState is HomeMapReady) {
+        final userMarker = currentState.markers
+            .firstWhere((m) => m.markerId.value == 'currentLocation');
+        emit(HomeMapReady(
+          currentPosition: currentState.currentPosition,
+          currentAddress: currentState.currentAddress,
+          markers: {userMarker, ..._driverMarkers},
+        ));
+      } else if (currentState is HomeRouteReady) {
+        // Also update the driver markers if a route is already active
+        emit(HomeRouteReady(
+          pickupPosition: currentState.pickupPosition,
+          pickupAddress: currentState.pickupAddress,
+          destinationAddress: currentState.destinationAddress,
+          markers: {
+            currentState.markers
+                .firstWhere((m) => m.markerId.value == 'pickup'),
+            currentState.markers
+                .firstWhere((m) => m.markerId.value == 'destination'),
+            ..._driverMarkers
+          },
+          polylines: currentState.polylines,
+          distance: currentState.distance,
+          duration: currentState.duration,
+          estimatedPrice: currentState.estimatedPrice,
+        ));
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _nearbyDriversSubscription?.cancel();
+    _positionStreamSubscription?.cancel();
+    return super.close();
   }
 }

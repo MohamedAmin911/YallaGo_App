@@ -8,7 +8,7 @@ import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/view/auth/customer_or_driver_screen.dart';
-import 'package:taxi_app/view/customer%20home/home_screen.dart';
+import 'package:taxi_app/view/customer%20home/customer_home_screen.dart';
 import 'package:taxi_app/view/driver%20home/driver_home_screen.dart';
 
 class AuthGate extends StatefulWidget {

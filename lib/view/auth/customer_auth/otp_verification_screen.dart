@@ -13,7 +13,7 @@ import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/view/auth/customer_auth/create_profile_screen.dart';
 import 'package:taxi_app/view/auth/customer_auth/enter_mobile_number_screen.dart';
-import 'package:taxi_app/view/customer%20home/home_screen.dart';
+import 'package:taxi_app/view/customer%20home/customer_home_screen.dart';
 
 class OtpVerificationView extends StatefulWidget {
   const OtpVerificationView({super.key, required this.phoneNumber});
