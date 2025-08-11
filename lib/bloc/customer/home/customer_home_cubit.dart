@@ -434,7 +434,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void listenToTripUpdates(String tripId) {
-    emit(HomeSearchingForDriver());
+    emit(HomeSearchingForDriver(tripId: tripId));
     _tripSubscription?.cancel();
 
     _tripSubscription = _db
@@ -532,9 +532,22 @@ class HomeCubit extends Cubit<HomeState> {
               }, // Pass the markers to the state
             ));
           }
+        } else if (trip.status == 'cancelled') {
+          await _tripSubscription?.cancel();
+          loadCurrentUserLocation();
         }
       }
     });
+  }
+
+  Future<void> cancelTripRequest(String tripId) async {
+    try {
+      // The listener will automatically handle the state change when it sees this update.
+      await _db.collection('trips').doc(tripId).update({'status': 'cancelled'});
+    } catch (e) {
+      // Emit an error if the cancellation fails
+      emit(HomeError(message: "Failed to cancel trip: ${e.toString()}"));
+    }
   }
 
   void _listenToAssignedDriver(TripModel trip) {
