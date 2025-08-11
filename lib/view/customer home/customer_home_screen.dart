@@ -101,6 +101,11 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
+<<<<<<< HEAD
+=======
+              // const CircularProgressIndicator(),
+              // const SizedBox(height: 16),
+>>>>>>> aaebcea8bb1cb03a486314d2b65759aa9fa66b36
               Text("Searching for nearby drivers...",
                   style: appStyle(
                       color: KColor.primaryText,
