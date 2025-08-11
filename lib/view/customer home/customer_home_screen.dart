@@ -38,9 +38,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- THE FIX IS HERE ---
-    // The MultiBlocProvider is removed. We now use BlocProvider just to create
-    // the HomeCubit for this screen session.
     return BlocProvider(
       create: (context) => HomeCubit()..loadCurrentUserLocation(),
       child: BlocListener<AuthCubit, AuthState>(
@@ -69,7 +66,10 @@ class HomeScreen extends StatelessWidget {
                         _buildGoogleMap(context, state),
                         if (state is HomeLoading ||
                             state is HomeSearchingForDriver)
-                          const Center(child: CircularProgressIndicator()),
+                          Center(
+                              child: CircularProgressIndicator(
+                            color: KColor.primary,
+                          )),
                         if (state is HomeError)
                           Center(child: Text(state.message)),
                         _buildTopUI(context),

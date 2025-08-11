@@ -12,6 +12,7 @@ import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/data_models/driver_model.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
+import 'package:taxi_app/services/notification_service.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());
@@ -27,6 +28,7 @@ class HomeCubit extends Cubit<HomeState> {
   BitmapDescriptor? _pickupIcon;
   BitmapDescriptor? _destinationIcon;
   BitmapDescriptor? _driverIcon;
+  final NotificationService _notificationService = NotificationService();
 
   void setMapController(GoogleMapController controller) {
     _mapController = controller;
@@ -517,7 +519,10 @@ class HomeCubit extends Cubit<HomeState> {
                 markerId: MarkerId(driver.uid),
                 position: driverPosition,
                 icon: _driverIcon!);
-
+            _notificationService.showNotification(
+              "Your driver has arrived!",
+              "${driver.fullName} is waiting for you at the pickup location.",
+            );
             emit(HomeDriverArrived(
               trip: trip,
               driver: driver,

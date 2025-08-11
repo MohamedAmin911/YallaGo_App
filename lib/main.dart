@@ -6,13 +6,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/customer/customer_cubit.dart';
-import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/bloc/payment/payment_method_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/common/api_keys.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:taxi_app/services/notification_service.dart';
 import 'package:taxi_app/view/auth/splash_view.dart';
 import 'firebase_options.dart';
 
@@ -21,10 +21,13 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await NotificationService().init();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Future.delayed(const Duration(seconds: 2));
   FlutterNativeSplash.remove();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+
   Stripe.publishableKey = KapiKeys.stripePublishableKey;
   await Stripe.instance.applySettings();
   runApp(const MyApp());
