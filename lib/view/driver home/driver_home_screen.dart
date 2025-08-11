@@ -161,7 +161,6 @@ class DriverHomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-<<<<<<< HEAD
                     width: 85.w,
                     child: Badge(
                       isLabelVisible: state.unreadMessageCount >
@@ -187,33 +186,24 @@ class DriverHomeScreen extends StatelessWidget {
                         },
                         color: KColor.primary,
                       ),
-=======
-                    width: 80.w,
-                    child: RoundButton(
-                      title: "CHAT",
-                      onPressed: () {
-                        /// TODO: Navigate to Chat Screen
-                      },
-                      color: KColor.primary,
->>>>>>> origin/main
                     ),
                   ),
                 ],
               ),
-
               const Divider(height: 24),
 
+              // --- Location Info ---
               IntrinsicHeight(
                 child: Row(
                   children: [
                     Column(
                       children: [
-                        Icon(Icons.circle, color: KColor.primary, size: 30.sp),
+                        Icon(Icons.circle, color: KColor.primary, size: 17.sp),
                         Expanded(
                             child:
                                 Container(width: 1.w, color: KColor.primary)),
                         Icon(Icons.location_on,
-                            color: KColor.primary, size: 40.sp),
+                            color: KColor.primary, size: 20.sp),
                       ],
                     ),
                     SizedBox(width: 16.w),
@@ -228,17 +218,10 @@ class DriverHomeScreen extends StatelessWidget {
                                   fontWeight: FontWeight.bold)),
                           Text(trip.pickupAddress,
                               style: appStyle(
-<<<<<<< HEAD
                                   size: 16.sp,
                                   color: KColor.primaryText,
                                   fontWeight: FontWeight.bold),
                               maxLines: 2,
-=======
-                                  size: 15.sp,
-                                  color: KColor.primaryText,
-                                  fontWeight: FontWeight.bold),
-                              maxLines: 3,
->>>>>>> origin/main
                               overflow: TextOverflow.ellipsis),
                           SizedBox(height: 12.h),
                           Text("DESTINATION",
@@ -248,17 +231,10 @@ class DriverHomeScreen extends StatelessWidget {
                                   fontWeight: FontWeight.bold)),
                           Text(trip.destinationAddress,
                               style: appStyle(
-<<<<<<< HEAD
                                   size: 16.sp,
                                   color: KColor.primaryText,
                                   fontWeight: FontWeight.bold),
                               maxLines: 2,
-=======
-                                  size: 15.sp,
-                                  color: KColor.primaryText,
-                                  fontWeight: FontWeight.bold),
-                              maxLines: 3,
->>>>>>> origin/main
                               overflow: TextOverflow.ellipsis),
                         ],
                       ),
@@ -268,7 +244,6 @@ class DriverHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-<<<<<<< HEAD
               // --- Action Buttons ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -283,14 +258,6 @@ class DriverHomeScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-=======
-              RoundButton(
-                title: "ARRIVED",
-                onPressed: () {
-                  context.read<DriverHomeCubit>().driverArrivedAtPickup();
-                },
-                color: Colors.green,
->>>>>>> origin/main
               ),
             ],
           ),
@@ -608,6 +575,7 @@ class DriverHomeScreen extends StatelessWidget {
                   title: "DECLINE",
                   onPressed: () {
                     Navigator.of(dialogContext).pop();
+                    // TODO: Handle decline logic
                   },
                   color: KColor.red,
                 ),
