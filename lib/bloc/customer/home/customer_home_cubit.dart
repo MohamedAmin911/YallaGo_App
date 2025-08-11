@@ -434,7 +434,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void listenToTripUpdates(String tripId) {
-    emit(HomeSearchingForDriver());
+    emit(HomeSearchingForDriver(tripId: tripId));
     _tripSubscription?.cancel();
 
     _tripSubscription = _db
@@ -462,7 +462,6 @@ class HomeCubit extends Cubit<HomeState> {
             final driverPosition = LatLng(driver.currentLocation!.latitude,
                 driver.currentLocation!.longitude);
 
-            // 2. Create markers for the customer and the accepting driver with custom icons.
             final customerMarker = Marker(
                 markerId: const MarkerId('pickup'),
                 position: customerPosition,
@@ -477,16 +476,7 @@ class HomeCubit extends Cubit<HomeState> {
             if (routeDetails == null) return;
             final durationInSeconds = routeDetails['duration'] as double;
             final durationMinutes = (durationInSeconds / 60).ceil();
-            // 3. Calculate the route from the driver to the customer.
-            // final polylinePoints = await _getRouteFromOSRM(driverPosition, customerPosition);
-            // final routeToPickup = Polyline(
-            //     polylineId: const PolylineId('route_to_pickup'),
-            //     color: KColor.primary,
-            //     points: polylinePoints ?? [],
-            //     width: 5,
-            // );
 
-            // 4. Animate camera to show both driver and customer.
             _mapController?.animateCamera(
               CameraUpdate.newLatLngBounds(
                   _boundsFromLatLngList([driverPosition, customerPosition]),
@@ -532,6 +522,9 @@ class HomeCubit extends Cubit<HomeState> {
               }, // Pass the markers to the state
             ));
           }
+        } else if (trip.status == 'cancelled') {
+          await _tripSubscription?.cancel();
+          loadCurrentUserLocation();
         }
       }
     });
@@ -582,6 +575,16 @@ class HomeCubit extends Cubit<HomeState> {
         ));
       }
     });
+  }
+
+  Future<void> cancelTripRequest(String tripId) async {
+    try {
+      // The listener will automatically handle the state change when it sees this update.
+      await _db.collection('trips').doc(tripId).update({'status': 'cancelled'});
+    } catch (e) {
+      // Emit an error if the cancellation fails
+      emit(HomeError(message: "Failed to cancel trip: ${e.toString()}"));
+    }
   }
 
   @override

@@ -185,29 +185,39 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   /// Accepts a trip, calculates the route to the customer, and updates the state.
   Future<void> acceptTrip(TripModel trip) async {
     final currentState = state;
-    // Ensure the driver is actually online before accepting a trip.
     if (currentState is! DriverOnline) return;
 
-    try {
-      emit(DriverHomeLoading());
+    final tripRef = _db.collection('trips').doc(trip.tripId);
 
-      // Step 1: Update the trip document in Firestore to "claim" it.
-      // This changes the status and assigns the driver's ID to the trip.
-      await _db.collection('trips').doc(trip.tripId).update({
-        'status': 'driver_accepted',
-        'driverUid': driverUid,
+    try {
+      // Use a Firestore transaction to prevent race conditions.
+      await _db.runTransaction((transaction) async {
+        final tripSnapshot = await transaction.get(tripRef);
+
+        if (!tripSnapshot.exists) {
+          throw Exception("Trip does not exist anymore.");
+        }
+
+        // Check the status *inside* the transaction.
+        if (tripSnapshot.data()?['status'] != 'searching') {
+          throw Exception("This trip is no longer available.");
+        }
+
+        // If the trip is still available, update it.
+        transaction.update(tripRef, {
+          'status': 'driver_accepted',
+          'driverUid': driverUid,
+        });
       });
 
-      // Step 2: Stop listening for other new trip requests.
+      // If the transaction succeeds, proceed with the UI updates.
       await _tripRequestSubscription?.cancel();
       _tripRequestSubscription = null;
 
-      // Step 3: Get the driver's current position and the customer's pickup position.
       final driverPosition = currentState.currentPosition;
       final pickupPosition =
           LatLng(trip.pickupLocation.latitude, trip.pickupLocation.longitude);
 
-      // Step 4: Calculate the route from the driver to the customer.
       final polylinePoints =
           await _getRouteFromOSRM(driverPosition, pickupPosition);
       final routeToPickup = Polyline(
@@ -217,7 +227,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         width: 5,
       );
 
-      // Step 5: Create new markers for the driver and the customer's pickup spot.
       final driverMarker = Marker(
           markerId: const MarkerId('driver'),
           position: driverPosition,
@@ -227,13 +236,11 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
           position: pickupPosition,
           icon: _pickupIcon!);
 
-      // Step 6: Animate the map camera to show the full route.
       _mapController?.animateCamera(
         CameraUpdate.newLatLngBounds(
             _boundsFromLatLngList([driverPosition, pickupPosition]), 100.0),
       );
 
-      // Step 7: Emit the new state to update the UI to the "en route" view.
       emit(DriverEnRouteToPickup(
         driverPosition: driverPosition,
         acceptedTrip: trip,
@@ -241,7 +248,10 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         polylines: {routeToPickup},
       ));
     } catch (e) {
-      emit(DriverHomeError(message: "Failed to accept trip: $e"));
+      // If the transaction fails (e.g., trip was cancelled), show an error.
+      emit(DriverHomeError(message: e.toString()));
+      // After the error, go back to listening for new trips.
+      goOnline();
     }
   }
 

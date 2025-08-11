@@ -37,65 +37,77 @@ class DriverHomeScreen extends StatelessWidget {
             );
           }
         },
-        child: Scaffold(
-          drawer: _buildAppDrawer(),
-          body: Builder(
-            builder: (context) {
-              return BlocListener<DriverHomeCubit, DriverHomeState>(
-                  listenWhen: (previous, current) {
-                // Check the state before the update. Was there already a trip request?
-                final wasTripAvailable =
-                    previous is DriverOnline && previous.newTripRequest != null;
+        child: BlocListener<DriverHomeCubit, DriverHomeState>(
+          listener: (context, state) {
+            if (state is DriverHomeError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: KColor.red,
+                ),
+              );
+            }
+          },
+          child: Scaffold(
+            drawer: _buildAppDrawer(),
+            body: Builder(
+              builder: (context) {
+                return BlocListener<DriverHomeCubit, DriverHomeState>(
+                    listenWhen: (previous, current) {
+                  // Check the state before the update. Was there already a trip request?
+                  final wasTripAvailable = previous is DriverOnline &&
+                      previous.newTripRequest != null;
 
-                // Check the state after the update. Is there a trip request now?
-                final isTripAvailable =
-                    current is DriverOnline && current.newTripRequest != null;
+                  // Check the state after the update. Is there a trip request now?
+                  final isTripAvailable =
+                      current is DriverOnline && current.newTripRequest != null;
 
-                // Only trigger the listener if a trip was NOT available before, but IS available now.
-                // This makes it fire only once when the new request first appears.
-                return !wasTripAvailable && isTripAvailable;
-              }, listener: (context, state) {
-                if (state is DriverOnline && state.newTripRequest != null) {
-                  _showRideRequestDialog(context, state.newTripRequest!);
-                }
-              }, child: BlocBuilder<DriverHomeCubit, DriverHomeState>(
-                builder: (context, state) {
-                  bool isOnline = state is DriverOnline ||
-                      state is DriverEnRouteToPickup ||
-                      state is DriverArrivedAtPickup;
-                  return Stack(
-                    children: [
-                      // --- Google Map ---
-                      _buildGoogleMap(context, state),
-                      !isOnline
-                          ? Container(
-                              color: KColor.primaryText.withOpacity(0.7))
-                          : Container(),
+                  // Only trigger the listener if a trip was NOT available before, but IS available now.
+                  // This makes it fire only once when the new request first appears.
+                  return !wasTripAvailable && isTripAvailable;
+                }, listener: (context, state) {
+                  if (state is DriverOnline && state.newTripRequest != null) {
+                    _showRideRequestDialog(context, state.newTripRequest!);
+                  }
+                }, child: BlocBuilder<DriverHomeCubit, DriverHomeState>(
+                  builder: (context, state) {
+                    bool isOnline = state is DriverOnline ||
+                        state is DriverEnRouteToPickup ||
+                        state is DriverArrivedAtPickup;
+                    return Stack(
+                      children: [
+                        // --- Google Map ---
+                        _buildGoogleMap(context, state),
+                        !isOnline
+                            ? Container(
+                                color: KColor.primaryText.withOpacity(0.7))
+                            : Container(),
 
-                      // --- Loading and Error UI ---
-                      if (state is DriverHomeLoading)
-                        Center(
-                            child: CircularProgressIndicator(
-                          color: KColor.primary,
-                        )),
-                      if (state is DriverHomeError)
-                        Center(child: Text(state.message)),
+                        // --- Loading and Error UI ---
+                        if (state is DriverHomeLoading)
+                          Center(
+                              child: CircularProgressIndicator(
+                            color: KColor.primary,
+                          )),
+                        if (state is DriverHomeError)
+                          Center(child: Text(state.message)),
 
-                      // --- Top UI (Online/Offline Toggle) ---
-                      _buildTopPanel(context, state),
-
-                      // Only show the top panel if a trip is NOT in progress
-                      if (state is! DriverEnRouteToPickup)
+                        // --- Top UI (Online/Offline Toggle) ---
                         _buildTopPanel(context, state),
 
-                      // Show the "en route" panel when a trip is accepted
-                      if (state is DriverEnRouteToPickup)
-                        _buildEnRouteToPickupPanel(context, state),
-                    ],
-                  );
-                },
-              ));
-            },
+                        // Only show the top panel if a trip is NOT in progress
+                        if (state is! DriverEnRouteToPickup)
+                          _buildTopPanel(context, state),
+
+                        // Show the "en route" panel when a trip is accepted
+                        if (state is DriverEnRouteToPickup)
+                          _buildEnRouteToPickupPanel(context, state),
+                      ],
+                    );
+                  },
+                ));
+              },
+            ),
           ),
         ),
       ),
@@ -126,8 +138,6 @@ class DriverHomeScreen extends StatelessWidget {
                   // Customer Profile Picture
                   CircleAvatar(
                     radius: 24.r,
-                    // --- THE FIX IS HERE ---
-                    // This check prevents the app from crashing if the URL is null or empty.
                     backgroundImage: (trip.customerImageUrl != null &&
                             trip.customerImageUrl!.isNotEmpty)
                         ? NetworkImage(trip.customerImageUrl!)
@@ -141,8 +151,7 @@ class DriverHomeScreen extends StatelessWidget {
                   // Customer Name
                   Expanded(
                     child: Text(
-                      trip.customerName ??
-                          "Customer", // Use the name from the trip model
+                      trip.customerName ?? "Customer",
                       style: appStyle(
                         size: 18.sp,
                         fontWeight: FontWeight.bold,
@@ -150,22 +159,32 @@ class DriverHomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  SizedBox(
+                    width: 80.w,
+                    child: RoundButton(
+                      title: "CHAT",
+                      onPressed: () {
+                        /// TODO: Navigate to Chat Screen
+                      },
+                      color: KColor.primary,
+                    ),
+                  ),
                 ],
               ),
+
               const Divider(height: 24),
 
-              // --- Location Info ---
               IntrinsicHeight(
                 child: Row(
                   children: [
                     Column(
                       children: [
-                        Icon(Icons.circle, color: KColor.primary, size: 17.sp),
+                        Icon(Icons.circle, color: KColor.primary, size: 30.sp),
                         Expanded(
                             child:
                                 Container(width: 1.w, color: KColor.primary)),
                         Icon(Icons.location_on,
-                            color: KColor.primary, size: 20.sp),
+                            color: KColor.primary, size: 40.sp),
                       ],
                     ),
                     SizedBox(width: 16.w),
@@ -176,18 +195,28 @@ class DriverHomeScreen extends StatelessWidget {
                           Text("PICKUP",
                               style: appStyle(
                                   size: 12.sp,
-                                  color: KColor.secondaryText,
+                                  color: KColor.placeholder,
                                   fontWeight: FontWeight.bold)),
                           Text(trip.pickupAddress,
-                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                              style: appStyle(
+                                  size: 15.sp,
+                                  color: KColor.primaryText,
+                                  fontWeight: FontWeight.bold),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis),
                           SizedBox(height: 12.h),
                           Text("DESTINATION",
                               style: appStyle(
                                   size: 12.sp,
-                                  color: KColor.secondaryText,
+                                  color: KColor.placeholder,
                                   fontWeight: FontWeight.bold)),
                           Text(trip.destinationAddress,
-                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                              style: appStyle(
+                                  size: 15.sp,
+                                  color: KColor.primaryText,
+                                  fontWeight: FontWeight.bold),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
@@ -196,20 +225,12 @@ class DriverHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // --- Action Buttons ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: RoundButton(
-                      title: "ARRIVED",
-                      onPressed: () {
-                        context.read<DriverHomeCubit>().driverArrivedAtPickup();
-                      },
-                      color: KColor.primary,
-                    ),
-                  ),
-                ],
+              RoundButton(
+                title: "ARRIVED",
+                onPressed: () {
+                  context.read<DriverHomeCubit>().driverArrivedAtPickup();
+                },
+                color: Colors.green,
               ),
             ],
           ),
@@ -527,7 +548,6 @@ class DriverHomeScreen extends StatelessWidget {
                   title: "DECLINE",
                   onPressed: () {
                     Navigator.of(dialogContext).pop();
-                    // TODO: Handle decline logic
                   },
                   color: KColor.red,
                 ),

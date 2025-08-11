@@ -86,7 +86,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchingPanel() {
+  Widget _buildSearchingPanel(
+      BuildContext context, HomeSearchingForDriver state) {
     return Positioned(
       left: 0,
       right: 0,
@@ -100,8 +101,6 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
               Text("Searching for nearby drivers...",
                   style: appStyle(
                       color: KColor.primaryText,
@@ -109,7 +108,11 @@ class HomeScreen extends StatelessWidget {
                       size: 18.sp)),
               const SizedBox(height: 16),
               RoundButton(
-                  title: "Cancel Ride", onPressed: () {}, color: KColor.red)
+                  title: "Cancel Ride",
+                  onPressed: () {
+                    context.read<HomeCubit>().cancelTripRequest(state.tripId);
+                  },
+                  color: KColor.red)
             ],
           ),
         ),
@@ -312,7 +315,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildBottomPanel(BuildContext context, HomeState state) {
     if (state is HomeSearchingForDriver) {
-      return _buildSearchingPanel();
+      return _buildSearchingPanel(context, state);
     }
     if (state is HomeDriverEnRoute) {
       return _buildDriverEnRoutePanel(context, state);
