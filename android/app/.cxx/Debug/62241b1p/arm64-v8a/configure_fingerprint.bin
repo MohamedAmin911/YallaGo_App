@@ -2,6 +2,7 @@ C/C++ Structured Logg
 e
 cE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\additional_project_files.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	‚Ò¨Ô‰3 ø¸‰†3d
 b
 `E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\android_gradle_build.json	‚Ò¨Ô‰3­ °¹‰†3i
@@ -26,3 +27,29 @@ YE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\prefab_c
 ^E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\symbol_folder_index.txt	‚Ò¨Ô‰3U Ú¹‰†3O
 M
 KE:\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt	‚Ò¨Ô‰3§ ëçÇ’Ö2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	†Œ•Á‰3 ø¸‰†3d
+b
+`E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\android_gradle_build.json	†Œ•Á‰3­ °¹‰†3i
+g
+eE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\android_gradle_build_mini.json	†Œ•Á‰3Ä Æ¹‰†3V
+T
+RE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\build.ninja	†Œ•Á‰3¼« Ùµ‰†3Z
+X
+VE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\build.ninja.txt	†Œ•Á‰3_
+]
+[E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\build_file_index.txt	†Œ•Á‰3K Û¹‰†3`
+^
+\E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\compile_commands.json	†Œ•Á‰3d
+b
+`E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\compile_commands.json.bin	†Œ•Á‰3	j
+h
+fE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\metadata_generation_command.txt	†Œ•Á‰3
+Ï È¹‰†3]
+[
+YE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\prefab_config.json	†Œ•Á‰3( È¹‰†3b
+`
+^E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\arm64-v8a\symbol_folder_index.txt	†Œ•Á‰3U Ú¹‰†3O
+M
+KE:\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt	†Œ•Á‰3§ ëçÇ’Ö2
+>>>>>>> origin/main

@@ -2,6 +2,7 @@ C/C++ Structured Logi
 g
 eE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\additional_project_files.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	ÒÝ¨Ô‰3  Š†3f
 d
 bE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\android_gradle_build.json	ÒÝ¨Ô‰3± Ë Š†3k
@@ -26,3 +27,29 @@ b
 `E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\symbol_folder_index.txt	ÓÝ¨Ô‰3W þ Š†3O
 M
 KE:\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt	ÓÝ¨Ô‰3§ ëçÇ’Ö2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	ú•Á‰3  Š†3f
+d
+bE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\android_gradle_build.json	ú•Á‰3± Ë Š†3k
+i
+gE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\android_gradle_build_mini.json	ú•Á‰3È Ö Š†3X
+V
+TE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\build.ninja	ú•Á‰3Æ« ÎŠ†3\
+Z
+XE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\build.ninja.txt	ú•Á‰3a
+_
+]E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\build_file_index.txt	ú•Á‰3K –¡Š†3b
+`
+^E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\compile_commands.json	ú•Á‰3f
+d
+bE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\compile_commands.json.bin	ú•Á‰3	l
+j
+hE:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\metadata_generation_command.txt	ú•Á‰3
+Ù Ø Š†3_
+]
+[E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\prefab_config.json	ú•Á‰3( Ù Š†3d
+b
+`E:\Flutter_Projects\taxi_app\android\app\.cxx\Debug\62241b1p\armeabi-v7a\symbol_folder_index.txt	ú•Á‰3W þ Š†3O
+M
+KE:\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt	ú•Á‰3§ ëçÇ’Ö2
+>>>>>>> origin/main

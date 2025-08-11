@@ -66,6 +66,10 @@ class HomeRouteReady extends HomeState {
 /// State for when the app is actively searching for a driver.
 class HomeSearchingForDriver extends HomeState {
   final String tripId;
+<<<<<<< HEAD
+
+=======
+>>>>>>> aaebcea8bb1cb03a486314d2b65759aa9fa66b36
   const HomeSearchingForDriver({required this.tripId});
 
   @override
