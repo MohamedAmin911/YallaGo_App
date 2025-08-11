@@ -13,6 +13,7 @@ import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
+import 'package:taxi_app/view/widgets/chat_bottom_sheet.dart';
 
 class DriverHomeScreen extends StatelessWidget {
   const DriverHomeScreen({super.key});
@@ -138,8 +139,6 @@ class DriverHomeScreen extends StatelessWidget {
                   // Customer Profile Picture
                   CircleAvatar(
                     radius: 24.r,
-                    // --- THE FIX IS HERE ---
-                    // This check prevents the app from crashing if the URL is null or empty.
                     backgroundImage: (trip.customerImageUrl != null &&
                             trip.customerImageUrl!.isNotEmpty)
                         ? NetworkImage(trip.customerImageUrl!)
@@ -153,8 +152,7 @@ class DriverHomeScreen extends StatelessWidget {
                   // Customer Name
                   Expanded(
                     child: Text(
-                      trip.customerName ??
-                          "Customer", // Use the name from the trip model
+                      trip.customerName ?? "Customer",
                       style: appStyle(
                         size: 18.sp,
                         fontWeight: FontWeight.bold,
@@ -164,12 +162,30 @@ class DriverHomeScreen extends StatelessWidget {
                   ),
                   SizedBox(
                     width: 85.w,
-                    child: RoundButton(
-                      title: "CHAT",
-                      onPressed: () {
-                        // TODO: Implement chat functionality
-                      },
-                      color: KColor.primary,
+                    child: Badge(
+                      isLabelVisible: state.unreadMessageCount >
+                          0, // Show badge if count > 0
+                      label: Text(state.unreadMessageCount.toString()),
+                      child: RoundButton(
+                        title: "CHAT",
+                        onPressed: () {
+                          showModalBottomSheet(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.r)),
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (sheetContext) {
+                              return BlocProvider.value(
+                                value: BlocProvider.of<AuthCubit>(context),
+                                child: ChatBottomSheet(
+                                    tripId: state.acceptedTrip.tripId ?? ""),
+                              );
+                            },
+                          );
+                        },
+                        color: KColor.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -238,7 +254,7 @@ class DriverHomeScreen extends StatelessWidget {
                       onPressed: () {
                         context.read<DriverHomeCubit>().driverArrivedAtPickup();
                       },
-                      color: KColor.primary,
+                      color: Colors.green,
                     ),
                   ),
                 ],

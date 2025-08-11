@@ -10,7 +10,6 @@ class ChatCubit extends Cubit<ChatState> {
 
   ChatCubit() : super(ChatInitial());
 
-  /// Listens to the message sub-collection for a specific trip in real-time.
   void listenToMessages(String tripId) {
     emit(ChatLoading());
     _messagesSubscription?.cancel();
@@ -19,8 +18,7 @@ class ChatCubit extends Cubit<ChatState> {
         .collection('trips')
         .doc(tripId)
         .collection('messages')
-        .orderBy('timestamp',
-            descending: true); // Show newest messages at the bottom
+        .orderBy('timestamp', descending: true);
 
     _messagesSubscription = messagesRef.snapshots().listen((snapshot) {
       final messages = snapshot.docs
@@ -32,21 +30,19 @@ class ChatCubit extends Cubit<ChatState> {
     });
   }
 
-  /// Sends a new message to the chat.
   Future<void> sendMessage({
     required String tripId,
     required String text,
     required String senderUid,
   }) async {
-    if (text.trim().isEmpty) {
-      return; // Don't send empty messages
-    }
+    if (text.trim().isEmpty) return;
     try {
       final message = ChatMessageModel(
-        messageId: '', // Firestore will generate this
+        messageId: '',
         senderUid: senderUid,
         text: text.trim(),
         timestamp: Timestamp.now(),
+        readBy: [senderUid], // The sender has automatically "read" it
       );
 
       await _db
@@ -55,14 +51,36 @@ class ChatCubit extends Cubit<ChatState> {
           .collection('messages')
           .add(message.toMap());
     } catch (e) {
-      // Optionally emit an error state if sending fails
       print("Error sending message: $e");
+    }
+  }
+
+  // --- NEW FUNCTION ---
+  /// Marks all unread messages in a chat as read by the current user.
+  Future<void> markMessagesAsRead(String tripId, String currentUserId) async {
+    try {
+      final messagesRef =
+          _db.collection('trips').doc(tripId).collection('messages');
+      // Get all messages where the current user's ID is NOT in the 'readBy' array
+      final unreadMessages = await messagesRef.where('readBy', whereNotIn: [
+        [currentUserId]
+      ]).get();
+
+      final WriteBatch batch = _db.batch();
+      for (final doc in unreadMessages.docs) {
+        // Add the current user's ID to the 'readBy' array for each unread message
+        batch.update(doc.reference, {
+          'readBy': FieldValue.arrayUnion([currentUserId])
+        });
+      }
+      await batch.commit();
+    } catch (e) {
+      print("Error marking messages as read: $e");
     }
   }
 
   @override
   Future<void> close() {
-    // Cancel the subscription when the cubit is no longer needed to prevent memory leaks
     _messagesSubscription?.cancel();
     return super.close();
   }

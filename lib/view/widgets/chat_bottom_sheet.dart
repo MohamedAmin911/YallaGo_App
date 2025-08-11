@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:taxi_app/bloc/auth/auth_cubit.dart';
-import 'package:taxi_app/bloc/auth/auth_states.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taxi_app/bloc/chat/chat_cubit.dart';
 import 'package:taxi_app/bloc/chat/chat_states.dart';
+import 'package:taxi_app/common/extensions.dart';
+import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/data_models/chat_model.dart';
 
 class ChatBottomSheet extends StatefulWidget {
@@ -17,55 +19,70 @@ class ChatBottomSheet extends StatefulWidget {
 
 class _ChatBottomSheetState extends State<ChatBottomSheet> {
   final _messageController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    // When the sheet opens, immediately mark all messages as read.
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // We create a temporary instance here to call the method.
+      // The BlocProvider below will manage the main instance for the UI.
+      ChatCubit().markMessagesAsRead(widget.tripId, user.uid);
+    }
+  }
 
   void _sendMessage(BuildContext context) {
-    final authState = context.read<AuthCubit>().state;
-    if (authState is AuthLoggedIn) {
+    // Get the user directly from FirebaseAuth for reliability
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
       context.read<ChatCubit>().sendMessage(
             tripId: widget.tripId,
             text: _messageController.text,
-            senderUid: authState.user.uid,
+            senderUid: user.uid,
           );
       _messageController.clear();
-      FocusScope.of(context).unfocus(); // Hide keyboard after sending
+      FocusScope.of(context).unfocus();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This provides the ChatCubit specifically to this bottom sheet.
     return BlocProvider(
       create: (context) => ChatCubit()..listenToMessages(widget.tripId),
       child: Padding(
         padding:
             EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Column(
-          mainAxisSize:
-              MainAxisSize.min, // Make the sheet only as tall as its content
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle to indicate the sheet can be dragged
             Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
-              height: 4,
-              width: 40,
+              height: 4.h,
+              width: 40.w,
               decoration: BoxDecoration(
                 color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(30.r),
               ),
             ),
-            // The list of messages
             Flexible(
               child: BlocBuilder<ChatCubit, ChatState>(
                 builder: (context, state) {
                   if (state is ChatLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(
+                        child: CircularProgressIndicator(
+                      color: KColor.primary,
+                    ));
                   }
                   if (state is ChatLoaded) {
                     final currentUserId =
-                        (context.read<AuthCubit>().state as AuthLoggedIn)
-                            .user
-                            .uid;
+                        FirebaseAuth.instance.currentUser?.uid;
+                    if (currentUserId == null) {
+                      return const Center(
+                          child: Text("Error: User not found."));
+                    }
+
                     return ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w),
                       reverse: true,
                       shrinkWrap: true,
                       itemCount: state.messages.length,
@@ -80,7 +97,7 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
                 },
               ),
             ),
-            // The input field
+            SizedBox(height: 10.h),
             _buildMessageInputField(),
           ],
         ),
@@ -101,15 +118,23 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                decoration: const InputDecoration(
-                  hintText: "Type a message...",
+                decoration: InputDecoration(
+                  hintStyle: appStyle(
+                      size: 15.sp,
+                      color: KColor.placeholder,
+                      fontWeight: FontWeight.w600),
+                  hintText: "  Type a message...",
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => _sendMessage(context),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.send),
+              icon: Icon(
+                Icons.send_rounded,
+                color: KColor.primary,
+                size: 30.sp,
+              ),
               onPressed: () => _sendMessage(context),
               color: Theme.of(context).primaryColor,
             ),
@@ -126,10 +151,17 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isMyMessage ? Colors.blue[100] : Colors.grey[300],
+          color:
+              isMyMessage ? KColor.primary.withOpacity(0.5) : KColor.lightGray,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(message.text),
+        child: Text(
+          message.text,
+          style: appStyle(
+              size: 15.sp,
+              color: KColor.primaryText,
+              fontWeight: FontWeight.w500),
+        ),
       ),
     );
   }

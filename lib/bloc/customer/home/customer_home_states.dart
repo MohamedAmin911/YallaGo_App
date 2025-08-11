@@ -79,6 +79,7 @@ class HomeDriverEnRoute extends HomeState {
   final Set<Marker> markers;
   final Set<Polyline> polylines;
   final String arrivalEta;
+  final int unreadMessageCount;
 
   const HomeDriverEnRoute({
     required this.trip,
@@ -86,10 +87,23 @@ class HomeDriverEnRoute extends HomeState {
     required this.markers,
     required this.polylines,
     required this.arrivalEta,
+    this.unreadMessageCount = 0,
   });
 
   @override
-  List<Object?> get props => [trip, driver, markers, polylines, arrivalEta];
+  List<Object?> get props =>
+      [trip, driver, markers, polylines, arrivalEta, unreadMessageCount];
+
+  HomeDriverEnRoute copyWith({int? unreadMessageCount}) {
+    return HomeDriverEnRoute(
+      trip: trip,
+      driver: driver,
+      markers: markers,
+      polylines: polylines,
+      arrivalEta: arrivalEta,
+      unreadMessageCount: unreadMessageCount ?? this.unreadMessageCount,
+    );
+  }
 }
 
 /// State for when the driver has arrived at the pickup location.
@@ -97,14 +111,24 @@ class HomeDriverArrived extends HomeState {
   final TripModel trip;
   final DriverModel driver;
   final Set<Marker> markers;
+  final int unreadMessageCount;
   const HomeDriverArrived({
     required this.trip,
     required this.driver,
     required this.markers,
+    this.unreadMessageCount = 0,
   });
 
   @override
-  List<Object?> get props => [trip, driver, markers];
+  List<Object?> get props => [trip, driver, markers, unreadMessageCount];
+  HomeDriverArrived copyWith({int? unreadMessageCount}) {
+    return HomeDriverArrived(
+      trip: trip,
+      driver: driver,
+      markers: markers,
+      unreadMessageCount: unreadMessageCount ?? this.unreadMessageCount,
+    );
+  }
 }
 
 class HomeError extends HomeState {

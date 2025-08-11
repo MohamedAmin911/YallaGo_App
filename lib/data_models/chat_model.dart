@@ -1,17 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Represents a single message in a chat between a customer and a driver.
 class ChatMessageModel {
   final String messageId;
-  final String senderUid; // The UID of the person who sent the message
+  final String senderUid;
   final String text;
   final Timestamp timestamp;
+  // --- NEW FIELD ---
+  // A list of UIDs of users who have read this message.
+  final List<String> readBy;
 
   ChatMessageModel({
     required this.messageId,
     required this.senderUid,
     required this.text,
     required this.timestamp,
+    this.readBy = const [], // Default to an empty list
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +22,7 @@ class ChatMessageModel {
       'senderUid': senderUid,
       'text': text,
       'timestamp': timestamp,
+      'readBy': readBy,
     };
   }
 
@@ -29,6 +33,8 @@ class ChatMessageModel {
       senderUid: map['senderUid'] ?? '',
       text: map['text'] ?? '',
       timestamp: map['timestamp'] ?? Timestamp.now(),
+      // Read the list from Firestore, defaulting to an empty list if it doesn't exist
+      readBy: List<String>.from(map['readBy'] ?? []),
     );
   }
 }

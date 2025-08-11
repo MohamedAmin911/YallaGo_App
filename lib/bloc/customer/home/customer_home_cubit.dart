@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart';
@@ -21,6 +22,7 @@ class HomeCubit extends Cubit<HomeState> {
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription? _tripSubscription;
   StreamSubscription? _assignedDriverSubscription;
+  StreamSubscription? _unreadChatSubscription;
   final Dio _dio = Dio();
   Position? _currentUserPosition;
   StreamSubscription? _nearbyDriversSubscription;
@@ -538,6 +540,7 @@ class HomeCubit extends Cubit<HomeState> {
         }
       }
     });
+    _listenForUnreadMessages(tripId, FirebaseAuth.instance.currentUser!.uid);
   }
 
   Future<void> cancelTripRequest(String tripId) async {
@@ -568,14 +571,6 @@ class HomeCubit extends Cubit<HomeState> {
         if (routeDetails == null) return;
         final durationInSeconds = routeDetails['duration'] as double;
         final durationMinutes = (durationInSeconds / 60).ceil();
-        // Recalculate the route from the driver's NEW position to the customer
-        // final polylinePoints = await _getRouteFromOSRM(driverPosition, customerPosition);
-        // final routeToPickup = Polyline(
-        //   polylineId: const PolylineId('route_to_pickup'),
-        //   color: Colors.green,
-        //   points: polylinePoints ?? [],
-        //   width: 5,
-        // );
 
         final customerMarker = Marker(
             markerId: const MarkerId('pickup'),
@@ -595,10 +590,36 @@ class HomeCubit extends Cubit<HomeState> {
         ));
       }
     });
+    _listenForUnreadMessages(
+        trip.tripId ?? "", FirebaseAuth.instance.currentUser!.uid);
+  }
+
+  void _listenForUnreadMessages(String tripId, String currentUserId) {
+    _unreadChatSubscription?.cancel();
+    _unreadChatSubscription = _db
+        .collection('trips')
+        .doc(tripId)
+        .collection('messages')
+        .where('readBy',
+            arrayContains: currentUserId,
+            isNull: false) // This is a trick to query for "not contains"
+        .snapshots()
+        .listen((snapshot) {
+      final unreadCount = snapshot.docs
+          .where((doc) => doc.data()['senderUid'] != currentUserId)
+          .length;
+      final currentState = state;
+      if (currentState is HomeDriverEnRoute) {
+        emit(currentState.copyWith(unreadMessageCount: unreadCount));
+      } else if (currentState is HomeDriverArrived) {
+        emit(currentState.copyWith(unreadMessageCount: unreadCount));
+      }
+    });
   }
 
   @override
   Future<void> close() {
+    _unreadChatSubscription?.cancel();
     _assignedDriverSubscription?.cancel();
     _tripSubscription?.cancel();
     _nearbyDriversSubscription?.cancel();

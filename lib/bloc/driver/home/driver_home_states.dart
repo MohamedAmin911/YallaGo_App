@@ -42,31 +42,52 @@ class DriverOnline extends DriverHomeState {
 class DriverArrivedAtPickup extends DriverHomeState {
   final TripModel acceptedTrip;
   final Set<Marker> markers;
-
+  final int unreadMessageCount;
   const DriverArrivedAtPickup({
     required this.acceptedTrip,
     required this.markers,
+    this.unreadMessageCount = 0,
   });
 
   @override
-  List<Object?> get props => [acceptedTrip, markers];
+  List<Object?> get props => [acceptedTrip, markers, unreadMessageCount];
+  DriverArrivedAtPickup copyWith({int? unreadMessageCount}) {
+    return DriverArrivedAtPickup(
+      acceptedTrip: acceptedTrip,
+      markers: markers,
+      unreadMessageCount: unreadMessageCount ?? this.unreadMessageCount,
+    );
+  }
 }
 
 class DriverEnRouteToPickup extends DriverHomeState {
   final LatLng driverPosition;
   final TripModel acceptedTrip;
   final Set<Marker> markers;
-  final Set<Polyline> polylines; // The route to the customer
+  final Set<Polyline> polylines;
+  final int unreadMessageCount;
 
   const DriverEnRouteToPickup({
     required this.driverPosition,
     required this.acceptedTrip,
     required this.markers,
     required this.polylines,
+    this.unreadMessageCount = 0,
   });
 
   @override
-  List<Object?> get props => [driverPosition, acceptedTrip, markers, polylines];
+  List<Object?> get props =>
+      [driverPosition, acceptedTrip, markers, polylines, unreadMessageCount];
+
+  DriverEnRouteToPickup copyWith({int? unreadMessageCount}) {
+    return DriverEnRouteToPickup(
+      driverPosition: driverPosition,
+      acceptedTrip: acceptedTrip,
+      markers: markers,
+      polylines: polylines,
+      unreadMessageCount: unreadMessageCount ?? this.unreadMessageCount,
+    );
+  }
 }
 
 class DriverHomeError extends DriverHomeState {

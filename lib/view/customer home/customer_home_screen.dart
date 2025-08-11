@@ -18,6 +18,7 @@ import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/data_models/driver_model.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
+import 'package:taxi_app/view/widgets/chat_bottom_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -209,8 +210,30 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 10.h),
-              RoundButton(
-                  title: "CHAT", onPressed: () {}, color: KColor.primary),
+              Badge(
+                isLabelVisible:
+                    state.unreadMessageCount > 0, // Show badge if count > 0
+                label: Text(state.unreadMessageCount.toString()),
+                child: RoundButton(
+                    title: "CHAT",
+                    onPressed: () {
+                      showModalBottomSheet(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30.r)),
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (sheetContext) {
+                          return BlocProvider.value(
+                            value: BlocProvider.of<AuthCubit>(context),
+                            child: ChatBottomSheet(
+                                tripId: state.trip.tripId ?? ""),
+                          );
+                        },
+                      );
+                    },
+                    color: KColor.primary),
+              ),
               const Divider(height: 24),
               Text("Your driver is on the way!",
                   style: appStyle(
@@ -230,8 +253,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDriverArrivedPanel(
-      BuildContext context, DriverModel driver, String tripId) {
+  Widget _buildDriverArrivedPanel(BuildContext context, DriverModel driver,
+      String tripId, HomeDriverArrived state) {
     return Positioned(
       left: 0,
       right: 0,
@@ -273,8 +296,29 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 10.h),
-              RoundButton(
-                  title: "CHAT", onPressed: () {}, color: KColor.primary),
+              Badge(
+                isLabelVisible:
+                    state.unreadMessageCount > 0, // Show badge if count > 0
+                label: Text(state.unreadMessageCount.toString()),
+                child: RoundButton(
+                    title: "CHAT",
+                    onPressed: () {
+                      showModalBottomSheet(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30.r)),
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (sheetContext) {
+                          return BlocProvider.value(
+                            value: BlocProvider.of<AuthCubit>(context),
+                            child: ChatBottomSheet(tripId: tripId),
+                          );
+                        },
+                      );
+                    },
+                    color: KColor.primary),
+              ),
             ],
           ),
         ),
@@ -324,7 +368,7 @@ class HomeScreen extends StatelessWidget {
     }
     if (state is HomeDriverArrived) {
       return _buildDriverArrivedPanel(
-          context, state.driver, state.trip.tripId ?? "");
+          context, state.driver, state.trip.tripId ?? "", state);
     }
     if (state is HomeRouteReady) {
       return _buildConfirmationPanel(context, state);

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -17,6 +18,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   StreamSubscription<Position>? _positionStreamSubscription;
   GoogleMapController? _mapController;
+  StreamSubscription? _unreadChatSubscription;
   BitmapDescriptor? _carIcon;
   BitmapDescriptor? _pickupIcon;
   DriverHomeCubit({required this.driverUid}) : super(DriverHomeLoading());
@@ -345,6 +347,9 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       },
       polylines: currentState.polylines,
     ));
+
+    _listenForUnreadMessages(currentState.acceptedTrip.tripId ?? "",
+        FirebaseAuth.instance.currentUser!.uid);
   }
 
   void driverArrivedAtPickup() {
@@ -365,10 +370,33 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       acceptedTrip: currentState.acceptedTrip,
       markers: currentState.markers,
     ));
+    _listenForUnreadMessages(currentState.acceptedTrip.tripId ?? "",
+        FirebaseAuth.instance.currentUser!.uid);
+  }
+
+  void _listenForUnreadMessages(String tripId, String currentUserId) {
+    _unreadChatSubscription?.cancel();
+    _unreadChatSubscription = _db
+        .collection('trips')
+        .doc(tripId)
+        .collection('messages')
+        .where('readBy', isNotEqualTo: [currentUserId])
+        .snapshots()
+        .listen((snapshot) {
+          final unreadCount = snapshot.docs.length;
+          final currentState = state;
+          // Update the current state with the new unread count
+          if (currentState is DriverEnRouteToPickup) {
+            emit(currentState.copyWith(unreadMessageCount: unreadCount));
+          } else if (currentState is DriverArrivedAtPickup) {
+            emit(currentState.copyWith(unreadMessageCount: unreadCount));
+          }
+        });
   }
 
   @override
   Future<void> close() {
+    _unreadChatSubscription?.cancel();
     _positionStreamSubscription?.cancel();
     _tripRequestSubscription?.cancel();
     return super.close();
