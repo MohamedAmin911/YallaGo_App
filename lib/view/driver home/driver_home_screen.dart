@@ -74,7 +74,8 @@ class DriverHomeScreen extends StatelessWidget {
                   builder: (context, state) {
                     bool isOnline = state is DriverOnline ||
                         state is DriverEnRouteToPickup ||
-                        state is DriverArrivedAtPickup;
+                        state is DriverArrivedAtPickup ||
+                        state is DriverTripInProgress;
                     return Stack(
                       children: [
                         // --- Google Map ---
@@ -103,6 +104,12 @@ class DriverHomeScreen extends StatelessWidget {
                         // Show the "en route" panel when a trip is accepted
                         if (state is DriverEnRouteToPickup)
                           _buildEnRouteToPickupPanel(context, state),
+
+                        if (state is DriverArrivedAtPickup)
+                          _buildArrivedPanel(context, state),
+
+                        if (state is DriverTripInProgress)
+                          _buildTripInProgressPanel(context, state)
                       ],
                     );
                   },
@@ -282,6 +289,10 @@ class DriverHomeScreen extends StatelessWidget {
       // initialPosition = state.driverPosition;
       markers = state.markers;
       // polylines = state.polylines;
+    } else if (state is DriverTripInProgress) {
+      // initialPosition = state.driverPosition;
+      markers = state.markers;
+      polylines = state.polylines;
     }
 
     return GoogleMap(
@@ -301,7 +312,9 @@ class DriverHomeScreen extends StatelessWidget {
   Widget _buildTopPanel(BuildContext context, DriverHomeState state) {
     bool isOnline = state is DriverOnline ||
         state is DriverEnRouteToPickup ||
-        state is DriverArrivedAtPickup;
+        state is DriverArrivedAtPickup ||
+        state is DriverArrivedAtPickup ||
+        state is DriverTripInProgress;
 
     return SafeArea(
       child: Padding(
@@ -474,6 +487,8 @@ class DriverHomeScreen extends StatelessWidget {
       readOnly: true,
       onTap: onTap,
       decoration: InputDecoration(
+        fillColor: KColor.lightGray.withOpacity(0.3),
+        filled: true,
         // filled: true,
         // fillColor: Colors.grey[200],
         border: OutlineInputBorder(
@@ -583,6 +598,135 @@ class DriverHomeScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildArrivedPanel(BuildContext context, DriverArrivedAtPickup state) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        elevation: 3,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Text("You have arrived.",
+                  style: appStyle(
+                      size: 20.sp,
+                      color: KColor.primaryText,
+                      fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text("Wait for customer to get in the car.",
+                  style: appStyle(
+                      size: 15.sp,
+                      color: KColor.placeholder,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Badge(
+                      isLabelVisible: state.unreadMessageCount > 0,
+                      label: Text(state.unreadMessageCount.toString()),
+                      child: RoundButton(
+                        title: "CHAT",
+                        onPressed: () {
+                          showModalBottomSheet(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.r)),
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (sheetContext) {
+                              return BlocProvider.value(
+                                value: BlocProvider.of<AuthCubit>(context),
+                                child: ChatBottomSheet(
+                                    tripId: state.acceptedTrip.tripId ?? ""),
+                              );
+                            },
+                          );
+                        },
+                        color: KColor.primary,
+                      ),
+                    ),
+                  ),
+
+                  // Chat button
+                  const SizedBox(width: 24),
+                  // Start Trip Button
+                  Expanded(
+                    child: RoundButton(
+                      title: "START TRIP",
+                      onPressed: () {
+                        context.read<DriverHomeCubit>().startTrip();
+                      },
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripInProgressPanel(
+      BuildContext context, DriverTripInProgress state) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        elevation: 3,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.place_rounded,
+                    color: KColor.primary,
+                    size: 40.sp,
+                  ),
+                  Expanded(
+                    child: _buildLocationField(
+                      text: state.trip.destinationAddress,
+                      onTap: () {},
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: RoundButton(
+                        title: "END TRIP",
+                        onPressed: () {
+                          context.read<DriverHomeCubit>().endTrip();
+                        },
+                        color: KColor.primary),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

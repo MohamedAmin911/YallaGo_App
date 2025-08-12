@@ -336,11 +336,14 @@ class HomeScreen extends StatelessWidget {
       markers = state.markers;
       polylines = state.polylines;
     } else if (state is HomeDriverEnRoute) {
-      // It now correctly handles the DriverEnRoute state
       markers = state.markers;
       polylines = state.polylines;
     } else if (state is HomeDriverArrived) {
-      // It now correctly handles the DriverArrived state
+      markers = state.markers;
+    } else if (state is HomeTripInProgress) {
+      markers = state.markers;
+      polylines = state.polylines;
+    } else if (state is HomeTripCompleted) {
       markers = state.markers;
     }
 
@@ -370,12 +373,20 @@ class HomeScreen extends StatelessWidget {
       return _buildDriverArrivedPanel(
           context, state.driver, state.trip.tripId ?? "", state);
     }
+    if (state is HomeTripInProgress) {
+      return _buildTripInProgressPanel(context, state);
+    }
+    if (state is HomeTripCompleted) {
+      return _buildTripCompletedPanel(context, state);
+    }
+
     if (state is HomeRouteReady) {
       return _buildConfirmationPanel(context, state);
     }
     if (state is HomeMapReady) {
       return _buildSearchPanel(context, state);
     }
+
     return const SizedBox.shrink();
   }
 
@@ -716,6 +727,109 @@ class HomeScreen extends StatelessWidget {
                 color: KColor.primary,
                 fontWeight: FontWeight.bold)),
       ],
+    );
+  }
+
+  Widget _buildTripInProgressPanel(
+      BuildContext context, HomeTripInProgress state) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        elevation: 3,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Text("Your trip is in progress",
+                  style: appStyle(
+                      size: 18.sp,
+                      color: KColor.primaryText,
+                      fontWeight: FontWeight.bold)),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  Icon(
+                    Icons.place_rounded,
+                    color: KColor.primary,
+                    size: 40.sp,
+                  ),
+                  Expanded(
+                    child: _buildLocationField(
+                      text: state.trip.destinationAddress,
+                      onTap: () {},
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 15.h),
+              LinearProgressIndicator(
+                minHeight: 5.h,
+                color: KColor.primary,
+                borderRadius: BorderRadius.circular(30.r),
+              ),
+              SizedBox(height: 15.h),
+              Text("Estimated Arrival: ${state.arrivalEta}"),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripCompletedPanel(
+      BuildContext context, HomeTripCompleted state) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        elevation: 3,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
+        margin: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Text("You have arrived!",
+                  style: appStyle(
+                      size: 20.sp,
+                      color: KColor.primaryText,
+                      fontWeight: FontWeight.bold)),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  Icon(
+                    Icons.attach_money_rounded,
+                    color: Colors.green,
+                    size: 40.sp,
+                  ),
+                  Expanded(
+                    child: _buildLocationField(
+                      text: state.trip.estimatedFare.toStringAsFixed(2),
+                      onTap: () {},
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.h),
+              //TODO: Add a button to report a problem to support
+              RoundButton(
+                  title: "PAY NOW",
+                  onPressed: () {
+                    // Go back to the initial map state
+                    context.read<HomeCubit>().loadCurrentUserLocation();
+                  },
+                  color: Colors.green)
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

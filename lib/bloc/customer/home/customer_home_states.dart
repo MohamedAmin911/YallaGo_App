@@ -131,6 +131,36 @@ class HomeDriverArrived extends HomeState {
   }
 }
 
+class HomeTripInProgress extends HomeState {
+  final TripModel trip;
+  final DriverModel driver;
+  final Set<Marker> markers;
+  final Set<Polyline> polylines;
+  final String arrivalEta;
+
+  const HomeTripInProgress({
+    required this.trip,
+    required this.driver,
+    required this.markers,
+    required this.polylines,
+    required this.arrivalEta,
+  });
+
+  @override
+  List<Object?> get props => [trip, driver, markers, polylines, arrivalEta];
+}
+
+class HomeTripCompleted extends HomeState {
+  final TripModel trip;
+  final Set<Marker> markers;
+  const HomeTripCompleted({
+    required this.trip,
+    required this.markers,
+  });
+  @override
+  List<Object?> get props => [trip, markers];
+}
+
 class HomeError extends HomeState {
   final String message;
 

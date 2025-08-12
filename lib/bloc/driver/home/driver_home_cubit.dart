@@ -21,6 +21,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   StreamSubscription? _unreadChatSubscription;
   BitmapDescriptor? _carIcon;
   BitmapDescriptor? _pickupIcon;
+  BitmapDescriptor? _destinationIcon;
   DriverHomeCubit({required this.driverUid}) : super(DriverHomeLoading());
   StreamSubscription? _tripRequestSubscription;
   final Dio _dio = Dio();
@@ -44,6 +45,8 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     try {
       _carIcon ??= await _bitmapDescriptorFromAsset(KImage.carYellow, 120);
       _pickupIcon ??= await _bitmapDescriptorFromAsset(KImage.manYellow, 120);
+      _destinationIcon ??=
+          await _bitmapDescriptorFromAsset(KImage.destinationIcon, 100);
       final doc = await _db.collection('drivers').doc(driverUid).get();
       if (!doc.exists) {
         emit(const DriverHomeError(message: "Driver profile not found."));
@@ -369,16 +372,14 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       'status': 'driver_arrived',
     });
 
-    // Emit the new state to update the UI
+    // --- THE FIX IS HERE ---
+    // We now pass the unread message count from the previous state
+    // to the new DriverArrivedAtPickup state.
     emit(DriverArrivedAtPickup(
       acceptedTrip: currentState.acceptedTrip,
       markers: currentState.markers,
-      unreadMessageCount: currentState.unreadMessageCount,
+      unreadMessageCount: currentState.unreadMessageCount, // Pass the count
     ));
-    _listenForUnreadMessages(
-        currentState.acceptedTrip.tripId ?? "",
-        FirebaseAuth.instance.currentUser!.uid,
-        currentState.acceptedTrip.driverUid ?? "");
   }
 
   void _listenForUnreadMessages(
@@ -405,6 +406,82 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         emit(currentState.copyWith(unreadMessageCount: unreadCount));
       }
     });
+  }
+
+  Future<void> startTrip() async {
+    final currentState = state;
+    if (currentState is! DriverArrivedAtPickup) return;
+
+    try {
+      emit(DriverHomeLoading());
+      final trip = currentState.acceptedTrip;
+
+      // 1. Update the trip status in Firestore to 'in_progress'.
+      await _db.collection('trips').doc(trip.tripId).update({
+        'status': 'in_progress',
+      });
+
+      final driverPosition = currentState.markers
+          .firstWhere((m) => m.markerId.value == 'driver')
+          .position;
+      final destinationPosition = LatLng(trip.destinationLocation.latitude,
+          trip.destinationLocation.longitude);
+
+      // 2. Get the route from the pickup location to the destination.
+      final polylinePoints =
+          await _getRouteFromOSRM(driverPosition, destinationPosition);
+      final routeToDestination = Polyline(
+        polylineId: const PolylineId('route_to_destination'),
+        color:
+            KColor.primary, // Use a different color for this part of the trip
+        points: polylinePoints ?? [],
+        width: 5,
+      );
+
+      // 3. Create new markers for the driver and the final destination.
+      final driverMarker = Marker(
+          markerId: const MarkerId('driver'),
+          position: driverPosition,
+          icon: _carIcon!);
+      final destinationMarker = Marker(
+        markerId: const MarkerId('destination'),
+        position: destinationPosition,
+        icon: _destinationIcon!,
+      );
+
+      // 4. Animate the camera to show the new route.
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLngBounds(
+            _boundsFromLatLngList([driverPosition, destinationPosition]),
+            100.0),
+      );
+
+      // 5. Emit the new state to update the UI.
+      emit(DriverTripInProgress(
+        trip: trip.copyWith(status: 'in_progress'),
+        markers: {driverMarker, destinationMarker},
+        polylines: {routeToDestination},
+      ));
+    } catch (e) {
+      emit(DriverHomeError(message: "Failed to start trip: $e"));
+    }
+  }
+
+  Future<void> endTrip() async {
+    final currentState = state;
+    if (currentState is! DriverTripInProgress) return;
+
+    try {
+      emit(DriverHomeLoading());
+      // Update the trip status to 'completed'
+      await _db.collection('trips').doc(currentState.trip.tripId).update({
+        'status': 'completed',
+      });
+      // Go back to the initial online state
+      goOnline();
+    } catch (e) {
+      emit(DriverHomeError(message: "Failed to end trip: $e"));
+    }
   }
 
   @override

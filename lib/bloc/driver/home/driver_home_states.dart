@@ -90,6 +90,21 @@ class DriverEnRouteToPickup extends DriverHomeState {
   }
 }
 
+class DriverTripInProgress extends DriverHomeState {
+  final TripModel trip;
+  final Set<Marker> markers;
+  final Set<Polyline> polylines; // The route to the destination
+
+  const DriverTripInProgress({
+    required this.trip,
+    required this.markers,
+    required this.polylines,
+  });
+
+  @override
+  List<Object?> get props => [trip, markers, polylines];
+}
+
 class DriverHomeError extends DriverHomeState {
   final String message;
 

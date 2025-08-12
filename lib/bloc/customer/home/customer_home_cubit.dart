@@ -30,6 +30,7 @@ class HomeCubit extends Cubit<HomeState> {
   BitmapDescriptor? _pickupIcon;
   BitmapDescriptor? _destinationIcon;
   BitmapDescriptor? _driverIcon;
+  BitmapDescriptor? _carIcon;
   final NotificationService _notificationService = NotificationService();
 
   void setMapController(GoogleMapController controller) {
@@ -44,6 +45,7 @@ class HomeCubit extends Cubit<HomeState> {
       _destinationIcon ??=
           await _bitmapDescriptorFromAsset(KImage.destinationIcon, 100);
       _driverIcon ??= await _bitmapDescriptorFromAsset(KImage.car2, 100);
+      _carIcon ??= await _bitmapDescriptorFromAsset(KImage.carYellow, 100);
       _currentUserPosition = await _determinePosition();
       final userLatLng = LatLng(
           _currentUserPosition!.latitude, _currentUserPosition!.longitude);
@@ -143,10 +145,6 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> planRoute(LatLng destination, String destinationAddress) async {
     final startState = state;
     if (startState is! HomeMapReady) return;
-    // if ((startState is! HomeMapReady && startState is! HomeRouteReady) ||
-    //     _currentUserPosition == null) {
-    //   return;
-    // }
 
     try {
       emit(HomeLoading());
@@ -154,12 +152,6 @@ class HomeCubit extends Cubit<HomeState> {
       final pickupLatLng = LatLng(
           _currentUserPosition!.latitude, _currentUserPosition!.longitude);
 
-      // String pickupAddress = "";
-      // if (startState is HomeMapReady) {
-      //   pickupAddress = startState.currentAddress;
-      // } else if (startState is HomeRouteReady) {
-      //   pickupAddress = startState.pickupAddress;
-      // }
       final pickupAddress = startState.currentAddress;
       final routeDetails = await _getRouteFromOSRM(pickupLatLng, destination);
       if (routeDetails == null) {
@@ -484,6 +476,14 @@ class HomeCubit extends Cubit<HomeState> {
         case 'driver_arrived':
           _handleDriverArrived(trip);
           break;
+        // --- NEW CASES ---
+        case 'in_progress':
+          _handleTripInProgress(trip);
+          break;
+        case 'completed':
+          _handleTripCompleted(trip);
+          break;
+        // --- END NEW CASES ---
         case 'cancelled':
           cancelTripRequest(tripId);
           break;
@@ -567,6 +567,89 @@ class HomeCubit extends Cubit<HomeState> {
         emit(currentState.copyWith(unreadMessageCount: unreadCount));
       }
     });
+  }
+
+  void _handleTripInProgress(TripModel trip) {
+    // This is very similar to the driver's listener, but for the customer
+    _assignedDriverSubscription?.cancel();
+    _assignedDriverSubscription = _db
+        .collection('drivers')
+        .doc(trip.driverUid)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists && snapshot.data() != null) {
+        final driver = DriverModel.fromMap(snapshot.data()!);
+        final destinationPosition = LatLng(trip.destinationLocation.latitude,
+            trip.destinationLocation.longitude);
+        final driverPosition = LatLng(driver.currentLocation!.latitude,
+            driver.currentLocation!.longitude);
+
+        final routeDetails =
+            await _getRouteFromOSRM(driverPosition, destinationPosition);
+        if (routeDetails == null) return;
+
+        final polylinePoints = routeDetails['polyline'] as List<LatLng>;
+        final durationInSeconds = routeDetails['duration'] as double;
+        final durationMinutes = (durationInSeconds / 60).ceil();
+
+        final routeToDestination = Polyline(
+          polylineId: const PolylineId('route_to_destination'),
+          color: KColor.primary,
+          points: polylinePoints,
+          width: 5,
+        );
+
+        final driverMarker = Marker(
+          markerId: MarkerId(driver.uid),
+          position: driverPosition,
+          icon: _carIcon!,
+        );
+        final destinationMarker = Marker(
+          markerId: const MarkerId('destination'),
+          position: destinationPosition,
+          icon: _destinationIcon!,
+        );
+
+        emit(HomeTripInProgress(
+          trip: trip,
+          driver: driver,
+          markers: {driverMarker, destinationMarker},
+          polylines: {routeToDestination},
+          arrivalEta: "$durationMinutes min",
+        ));
+      }
+    });
+  }
+
+  void _handleTripCompleted(TripModel trip) async {
+    _tripSubscription?.cancel();
+    _assignedDriverSubscription?.cancel();
+
+    try {
+      // 1. Get the user's actual current position.
+      final currentPosition = await _determinePosition();
+      final customerFinalPosition =
+          LatLng(currentPosition.latitude, currentPosition.longitude);
+
+      // 2. Create a marker at that actual location.
+      final customerMarker = Marker(
+        markerId: const MarkerId('currentLocation'),
+        position: customerFinalPosition,
+        icon: _pickupIcon!, // Use the already loaded pickup icon
+      );
+
+      // 3. Animate the camera to the customer's final location.
+      _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(customerFinalPosition, 16));
+
+      emit(HomeTripCompleted(
+        trip: trip,
+        markers: {customerMarker}, // Pass the new marker to the state
+      ));
+    } catch (e) {
+      // If getting the location fails, emit an error or a default state.
+      emit(HomeError(message: "Could not get final location: $e"));
+    }
   }
 
   @override
