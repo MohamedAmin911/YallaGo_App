@@ -64,18 +64,18 @@ class TripCubit extends Cubit<TripState> {
   }
 
   /// Listens to a single trip for real-time updates (e.g., for live map tracking).
-  // void listenToTrip(String tripId) {
-  //   _tripSubscription?.cancel();
-  //   _tripSubscription =
-  //       _db.collection('trips').doc(tripId).snapshots().listen((snapshot) {
-  //     if (snapshot.exists && snapshot.data() != null) {
-  //       final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
-  //       emit(TripInProgress(trip: trip));
-  //     }
-  //   }, onError: (error) {
-  //     emit(TripError(message: error.toString()));
-  //   });
-  // }
+  void listenToTrip(String tripId) {
+    _tripSubscription?.cancel();
+    _tripSubscription =
+        _db.collection('trips').doc(tripId).snapshots().listen((snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
+        emit(TripInProgress(trip: trip));
+      }
+    }, onError: (error) {
+      emit(TripError(message: error.toString()));
+    });
+  }
 
   /// Fetches a list of past trips for a specific customer.
   Future<void> fetchTripHistory(String customerUid) async {

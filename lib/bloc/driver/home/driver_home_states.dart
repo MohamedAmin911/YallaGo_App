@@ -98,13 +98,3 @@ class DriverHomeError extends DriverHomeState {
   @override
   List<Object> get props => [message];
 }
-
-// class NewTripAvailable extends DriverHomeState {
-//   final TripModel trip;
-//   const NewTripAvailable({required this.trip});
-// }
-
-// class TripAccepted extends DriverHomeState {
-//   final TripModel trip;
-//   const TripAccepted({required this.trip});
-// }

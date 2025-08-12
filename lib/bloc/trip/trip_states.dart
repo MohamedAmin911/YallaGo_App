@@ -14,10 +14,10 @@ class TripCreated extends TripState {
   TripCreated({required this.tripId});
 }
 
-// class TripInProgress extends TripState {
-//   final TripModel trip;
-//   TripInProgress({required this.trip});
-// }
+class TripInProgress extends TripState {
+  final TripModel trip;
+  TripInProgress({required this.trip});
+}
 
 class TripHistoryLoaded extends TripState {
   final List<TripModel> trips;

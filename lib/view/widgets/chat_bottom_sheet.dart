@@ -22,13 +22,15 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // When the sheet opens, immediately mark all messages as read.
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // We create a temporary instance here to call the method.
-      // The BlocProvider below will manage the main instance for the UI.
-      ChatCubit().markMessagesAsRead(widget.tripId, user.uid);
-    }
+    // --- THE FIX IS HERE ---
+    // We now call this after the UI has been built for the first time.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Use the context's ChatCubit, which is provided below.
+        context.read<ChatCubit>().markMessagesAsRead(widget.tripId, user.uid);
+      }
+    });
   }
 
   void _sendMessage(BuildContext context) {

@@ -435,112 +435,60 @@ class HomeCubit extends Cubit<HomeState> {
     });
   }
 
+  void _handleDriverArrived(TripModel trip) async {
+    final driverDoc = await _db.collection('drivers').doc(trip.driverUid).get();
+    if (driverDoc.exists) {
+      final driver = DriverModel.fromMap(driverDoc.data()!);
+
+      _notificationService.showNotification(
+        "Your driver has arrived!",
+        "${driver.fullName} is waiting for you at the pickup location.",
+      );
+
+      final customerPosition =
+          LatLng(trip.pickupLocation.latitude, trip.pickupLocation.longitude);
+      final driverPosition = LatLng(
+          driver.currentLocation!.latitude, driver.currentLocation!.longitude);
+
+      final customerMarker = Marker(
+          markerId: const MarkerId('pickup'),
+          position: customerPosition,
+          icon: _pickupIcon!);
+      final driverMarker = Marker(
+          markerId: MarkerId(driver.uid),
+          position: driverPosition,
+          icon: _driverIcon!);
+
+      emit(HomeDriverArrived(
+        trip: trip,
+        driver: driver,
+        markers: {customerMarker, driverMarker},
+      ));
+    }
+  }
+
   void listenToTripUpdates(String tripId) {
     emit(HomeSearchingForDriver(tripId: tripId));
     _tripSubscription?.cancel();
+    _assignedDriverSubscription?.cancel();
 
-    _tripSubscription = _db
-        .collection('trips')
-        .doc(tripId)
-        .snapshots()
-        .listen((snapshot) async {
-      if (snapshot.exists && snapshot.data() != null) {
-        final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
+    _tripSubscription =
+        _db.collection('trips').doc(tripId).snapshots().listen((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) return;
+      final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
 
-        if (trip.status == 'driver_accepted' && trip.driverUid != null) {
+      switch (trip.status) {
+        case 'driver_accepted':
           _listenToAssignedDriver(trip);
-          if (_driverIcon == null || _pickupIcon == null) {
-            print("Icons not loaded yet, skipping state update.");
-            return;
-          }
-
-          final driverDoc =
-              await _db.collection('drivers').doc(trip.driverUid).get();
-          if (driverDoc.exists) {
-            final driver = DriverModel.fromMap(driverDoc.data()!);
-
-            final customerPosition = LatLng(
-                trip.pickupLocation.latitude, trip.pickupLocation.longitude);
-            final driverPosition = LatLng(driver.currentLocation!.latitude,
-                driver.currentLocation!.longitude);
-
-            // 2. Create markers for the customer and the accepting driver with custom icons.
-            final customerMarker = Marker(
-                markerId: const MarkerId('pickup'),
-                position: customerPosition,
-                icon: _pickupIcon!);
-            final acceptedDriverMarker = Marker(
-              markerId: MarkerId(driver.uid),
-              position: driverPosition,
-              icon: _driverIcon!,
-            );
-            final routeDetails =
-                await _getRouteFromOSRM(driverPosition, customerPosition);
-            if (routeDetails == null) return;
-            final durationInSeconds = routeDetails['duration'] as double;
-            final durationMinutes = (durationInSeconds / 60).ceil();
-            // 3. Calculate the route from the driver to the customer.
-            // final polylinePoints = await _getRouteFromOSRM(driverPosition, customerPosition);
-            // final routeToPickup = Polyline(
-            //     polylineId: const PolylineId('route_to_pickup'),
-            //     color: KColor.primary,
-            //     points: polylinePoints ?? [],
-            //     width: 5,
-            // );
-
-            // 4. Animate camera to show both driver and customer.
-            _mapController?.animateCamera(
-              CameraUpdate.newLatLngBounds(
-                  _boundsFromLatLngList([driverPosition, customerPosition]),
-                  100.0),
-            );
-
-            emit(HomeDriverEnRoute(
-              trip: trip,
-              driver: driver,
-              markers: {customerMarker, acceptedDriverMarker},
-              polylines: {},
-              arrivalEta: "$durationMinutes min",
-            ));
-          }
-        } else if (trip.status == 'driver_arrived' && trip.driverUid != null) {
-          final driverDoc =
-              await _db.collection('drivers').doc(trip.driverUid).get();
-          if (driverDoc.exists) {
-            final driver = DriverModel.fromMap(driverDoc.data()!);
-            final customerPosition = LatLng(
-                trip.pickupLocation.latitude, trip.pickupLocation.longitude);
-            final driverPosition = LatLng(driver.currentLocation!.latitude,
-                driver.currentLocation!.longitude);
-
-            final customerMarker = Marker(
-                markerId: const MarkerId('pickup'),
-                position: customerPosition,
-                icon: _pickupIcon!);
-            final driverMarker = Marker(
-                markerId: MarkerId(driver.uid),
-                position: driverPosition,
-                icon: _driverIcon!);
-            _notificationService.showNotification(
-              "Your driver has arrived!",
-              "${driver.fullName} is waiting for you at the pickup location.",
-            );
-            emit(HomeDriverArrived(
-              trip: trip,
-              driver: driver,
-              markers: {
-                customerMarker,
-                driverMarker
-              }, // Pass the markers to the state
-            ));
-          }
-        } else if (trip.status == 'cancelled') {
-          await _tripSubscription?.cancel();
-          loadCurrentUserLocation();
-        }
+          break;
+        case 'driver_arrived':
+          _handleDriverArrived(trip);
+          break;
+        case 'cancelled':
+          cancelTripRequest(tripId);
+          break;
       }
     });
-    _listenForUnreadMessages(tripId, FirebaseAuth.instance.currentUser!.uid);
   }
 
   Future<void> cancelTripRequest(String tripId) async {
@@ -588,26 +536,30 @@ class HomeCubit extends Cubit<HomeState> {
           polylines: {},
           arrivalEta: "$durationMinutes min",
         ));
+        final customerUid = FirebaseAuth.instance.currentUser!.uid;
+        _listenForUnreadMessages(
+            trip.tripId ?? "", customerUid, trip.driverUid!);
       }
     });
-    _listenForUnreadMessages(
-        trip.tripId ?? "", FirebaseAuth.instance.currentUser!.uid);
   }
 
-  void _listenForUnreadMessages(String tripId, String currentUserId) {
+  void _listenForUnreadMessages(
+      String tripId, String currentUserId, String otherUserId) {
     _unreadChatSubscription?.cancel();
     _unreadChatSubscription = _db
         .collection('trips')
         .doc(tripId)
         .collection('messages')
-        .where('readBy',
-            arrayContains: currentUserId,
-            isNull: false) // This is a trick to query for "not contains"
+        // 1. Get messages sent by the OTHER person
+        .where('senderUid', isEqualTo: otherUserId)
         .snapshots()
         .listen((snapshot) {
-      final unreadCount = snapshot.docs
-          .where((doc) => doc.data()['senderUid'] != currentUserId)
-          .length;
+      // 2. From those messages, filter out the ones I have already read
+      final unreadCount = snapshot.docs.where((doc) {
+        final readBy = List<String>.from(doc.data()['readBy'] ?? []);
+        return !readBy.contains(currentUserId);
+      }).length;
+
       final currentState = state;
       if (currentState is HomeDriverEnRoute) {
         emit(currentState.copyWith(unreadMessageCount: unreadCount));

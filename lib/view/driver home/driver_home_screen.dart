@@ -163,8 +163,7 @@ class DriverHomeScreen extends StatelessWidget {
                   SizedBox(
                     width: 85.w,
                     child: Badge(
-                      isLabelVisible: state.unreadMessageCount >
-                          0, // Show badge if count > 0
+                      isLabelVisible: state.unreadMessageCount > 0,
                       label: Text(state.unreadMessageCount.toString()),
                       child: RoundButton(
                         title: "CHAT",

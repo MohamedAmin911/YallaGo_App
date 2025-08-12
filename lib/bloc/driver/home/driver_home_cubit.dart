@@ -249,6 +249,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         markers: {driverMarker, pickupMarker},
         polylines: {routeToPickup},
       ));
+      _listenForUnreadMessages(trip.tripId ?? "", driverUid, trip.customerUid);
     } catch (e) {
       // If the transaction fails (e.g., trip was cancelled), show an error.
       emit(DriverHomeError(message: e.toString()));
@@ -346,10 +347,13 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         currentState.markers.firstWhere((m) => m.markerId.value == 'pickup')
       },
       polylines: currentState.polylines,
+      unreadMessageCount: currentState.unreadMessageCount,
     ));
 
-    _listenForUnreadMessages(currentState.acceptedTrip.tripId ?? "",
-        FirebaseAuth.instance.currentUser!.uid);
+    _listenForUnreadMessages(
+        currentState.acceptedTrip.tripId ?? "",
+        FirebaseAuth.instance.currentUser!.uid,
+        currentState.acceptedTrip.driverUid ?? "");
   }
 
   void driverArrivedAtPickup() {
@@ -369,29 +373,38 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     emit(DriverArrivedAtPickup(
       acceptedTrip: currentState.acceptedTrip,
       markers: currentState.markers,
+      unreadMessageCount: currentState.unreadMessageCount,
     ));
-    _listenForUnreadMessages(currentState.acceptedTrip.tripId ?? "",
-        FirebaseAuth.instance.currentUser!.uid);
+    _listenForUnreadMessages(
+        currentState.acceptedTrip.tripId ?? "",
+        FirebaseAuth.instance.currentUser!.uid,
+        currentState.acceptedTrip.driverUid ?? "");
   }
 
-  void _listenForUnreadMessages(String tripId, String currentUserId) {
+  void _listenForUnreadMessages(
+      String tripId, String currentUserId, String otherUserId) {
     _unreadChatSubscription?.cancel();
     _unreadChatSubscription = _db
         .collection('trips')
         .doc(tripId)
         .collection('messages')
-        .where('readBy', isNotEqualTo: [currentUserId])
+        // 1. Get messages sent by the OTHER person
+        .where('senderUid', isEqualTo: otherUserId)
         .snapshots()
         .listen((snapshot) {
-          final unreadCount = snapshot.docs.length;
-          final currentState = state;
-          // Update the current state with the new unread count
-          if (currentState is DriverEnRouteToPickup) {
-            emit(currentState.copyWith(unreadMessageCount: unreadCount));
-          } else if (currentState is DriverArrivedAtPickup) {
-            emit(currentState.copyWith(unreadMessageCount: unreadCount));
-          }
-        });
+      // 2. From those messages, filter out the ones I have already read
+      final unreadCount = snapshot.docs.where((doc) {
+        final readBy = List<String>.from(doc.data()['readBy'] ?? []);
+        return !readBy.contains(currentUserId);
+      }).length;
+
+      final currentState = state;
+      if (currentState is DriverEnRouteToPickup) {
+        emit(currentState.copyWith(unreadMessageCount: unreadCount));
+      } else if (currentState is DriverArrivedAtPickup) {
+        emit(currentState.copyWith(unreadMessageCount: unreadCount));
+      }
+    });
   }
 
   @override
