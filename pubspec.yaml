@@ -62,6 +62,7 @@ dependencies:
   flutter_launcher_icons:
   flutter_colorpicker:
   flutter_local_notifications:
+  flutter_rating_bar:
 
 dev_dependencies:
   flutter_test:

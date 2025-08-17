@@ -73,6 +73,7 @@ class _AuthGateState extends State<AuthGate> {
 
         final isDriver = await driverCubit.checkIfDriverExists(user.uid);
         if (isDriver) {
+          driverCubit.listenToDriver(user.uid);
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const DriverHomeScreen()),
             (route) => false,

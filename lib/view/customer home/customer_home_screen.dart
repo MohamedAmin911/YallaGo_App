@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/auth/auth_states.dart';
@@ -168,16 +169,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(driver.fullName,
                           style: appStyle(
-                              color: KColor.primary,
+                              color: KColor.primaryText,
                               fontWeight: FontWeight.bold,
-                              size: 25.sp)),
+                              size: 30.sp)),
                       SizedBox(height: 10.h),
                       Row(
                         children: [
                           Icon(
                             Icons.drive_eta_rounded,
                             size: 25.sp,
-                            color: KColor.primaryText,
+                            color: KColor.placeholder,
+                          ),
+                          SizedBox(width: 3.w),
+                          Icon(
+                            Icons.circle,
+                            size: 20.sp,
+                            color: Color(int.parse(
+                                "0xff${driver.carColor.replaceFirst(RegExp(r'#'), "")}")),
                           ),
                           SizedBox(width: 3.w),
                           SizedBox(
@@ -188,12 +196,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontWeight: FontWeight.bold,
                                     size: 14.sp)),
                           ),
-                          Icon(
-                            Icons.circle,
-                            size: 20.sp,
-                            color: Color(int.parse(
-                                "0xff${driver.carColor.replaceFirst(RegExp(r'#'), "")}")),
-                          ),
                         ],
                       ),
                       SizedBox(height: 5.h),
@@ -202,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Image.asset(
                             KImage.licensePlate,
                             width: 25.w,
+                            color: KColor.placeholder,
                           ),
                           // Icon(
                           //   Icons.assignment_ind,
@@ -215,6 +218,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                   size: 14.sp)),
                         ],
                       ),
+                      SizedBox(height: 5.h),
+                      RatingBarIndicator(
+                        rating: driver.rating,
+                        itemBuilder: (context, index) => const Icon(
+                          Icons.star_rate_rounded,
+                          color: Colors.amber,
+                        ),
+                        itemCount: 5,
+                        itemSize: 25.sp,
+                        unratedColor: KColor.placeholder.withOpacity(0.5),
+                        direction: Axis.horizontal,
+                      ),
+                      SizedBox(height: 5.h),
                     ],
                   ),
                 ],
@@ -245,6 +261,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: KColor.primary),
               ),
               const Divider(height: 24),
+              LinearProgressIndicator(
+                minHeight: 5.h,
+                color: KColor.primary,
+                borderRadius: BorderRadius.circular(30.r),
+              ),
+              SizedBox(height: 10.h),
               Text("Your driver is on the way!",
                   style: appStyle(
                       color: KColor.primaryText,
@@ -843,41 +865,49 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
               ),
               Divider(height: 24.h),
-              Row(
-                children: [
-                  Icon(
-                    Icons.attach_money_rounded,
-                    color: Colors.green,
-                    size: 40.sp,
-                  ),
-                  Expanded(
-                    child: _buildLocationField(
-                      text: state.trip.estimatedFare.toStringAsFixed(2),
-                      onTap: () {},
+              Container(
+                padding: EdgeInsets.only(right: 2.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30.r),
+                  border: Border.all(color: Colors.green, width: 2.w),
+                ),
+                child: Row(
+                  children: [
+                    Text("  EGP  ",
+                        style: appStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.w900,
+                            size: 20.sp)),
+
+                    Text(state.trip.estimatedFare.toStringAsFixed(2),
+                        style: appStyle(
+                            color: KColor.primaryText,
+                            fontWeight: FontWeight.w600,
+                            size: 20.sp)),
+
+                    SizedBox(width: 20.w),
+                    // --- Pay Button ---
+                    Expanded(
+                      child: RoundButton(
+                          title: "PAY",
+                          onPressed: () {
+                            final tripCubit = context.read<TripCubit>();
+                            final driverCubit = context.read<DriverCubit>();
+                            final customerCubit = context.read<CustomerCubit>();
+
+                            tripCubit.processTripPayment(
+                              trip: state.trip,
+                              driverCubit: driverCubit,
+                              customerCubit: customerCubit,
+                              rating: _rating,
+                            );
+
+                            context.read<HomeCubit>().loadCurrentUserLocation();
+                          },
+                          color: Colors.green),
                     ),
-                  ),
-                  SizedBox(width: 20.w),
-                  // --- Pay Button ---
-                  Expanded(
-                    child: RoundButton(
-                        title: "PAY",
-                        onPressed: () {
-                          final tripCubit = context.read<TripCubit>();
-                          final driverCubit = context.read<DriverCubit>();
-                          final customerCubit = context.read<CustomerCubit>();
-
-                          tripCubit.processTripPayment(
-                            trip: state.trip,
-                            driverCubit: driverCubit,
-                            customerCubit: customerCubit,
-                            rating: _rating,
-                          );
-
-                          context.read<HomeCubit>().loadCurrentUserLocation();
-                        },
-                        color: Colors.green),
-                  )
-                ],
+                  ],
+                ),
               ),
               Divider(height: 24.h),
               RoundButton(
