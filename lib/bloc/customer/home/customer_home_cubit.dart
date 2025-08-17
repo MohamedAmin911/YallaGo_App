@@ -480,7 +480,7 @@ class HomeCubit extends Cubit<HomeState> {
         case 'in_progress':
           _handleTripInProgress(trip);
           break;
-        case 'completed':
+        case 'arrived_at_destination':
           _handleTripCompleted(trip);
           break;
         // --- END NEW CASES ---

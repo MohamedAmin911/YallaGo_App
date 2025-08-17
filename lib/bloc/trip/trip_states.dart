@@ -19,6 +19,10 @@ class TripInProgress extends TripState {
   TripInProgress({required this.trip});
 }
 
+class TripArrivedAtPickup extends TripState {}
+
+class TripCompleted extends TripState {}
+
 class TripHistoryLoaded extends TripState {
   final List<TripModel> trips;
   TripHistoryLoaded({required this.trips});

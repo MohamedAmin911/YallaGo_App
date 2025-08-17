@@ -25,10 +25,11 @@ class DriverModel {
   final String? criminalRecordUrl;
 
   // --- Driver Status & Stats ---
-  final String status; // e.g., "pending_approval", "approved"
+  final String status;
   final bool isOnline;
   final double rating;
   final int totalRides;
+  final double balance;
 
   // --- Real-time Data ---
   final GeoPoint? currentLocation;
@@ -60,6 +61,7 @@ class DriverModel {
     this.currentLocation,
     this.fcmToken,
     this.stripeConnectAccountId,
+    this.balance = 0.0,
   });
 
   Map<String, dynamic> toMap() {
@@ -85,6 +87,7 @@ class DriverModel {
       'currentLocation': currentLocation,
       'fcmToken': fcmToken,
       'stripeConnectAccountId': stripeConnectAccountId,
+      'balance': balance,
     };
   }
 
@@ -111,6 +114,7 @@ class DriverModel {
       currentLocation: map['currentLocation'],
       fcmToken: map['fcmToken'],
       stripeConnectAccountId: map['stripeConnectAccountId'],
+      balance: (map['balance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

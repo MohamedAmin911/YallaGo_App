@@ -186,6 +186,53 @@ class DriverCubit extends Cubit<DriverState> {
     }
   }
 
+  Future<void> addEarningsToBalance(String driverId, double earnings) async {
+    try {
+      // Use FieldValue.increment to safely add the earnings to the existing balance.
+      await _db.collection('drivers').doc(driverId).update({
+        'balance': FieldValue.increment(earnings),
+      });
+    } catch (e) {
+      // In a real app, you would have more robust error handling here.
+      print("Error updating driver balance: $e");
+    }
+  }
+
+  /// Increments the totalRides count for a driver.
+  Future<void> incrementTotalRides(String driverId) async {
+    try {
+      await _db.collection('drivers').doc(driverId).update({
+        'totalRides': FieldValue.increment(1),
+      });
+    } catch (e) {
+      print("Error incrementing driver rides: $e");
+    }
+  }
+
+  Future<void> updateDriverRating(String driverId, double newRating) async {
+    final driverRef = _db.collection('drivers').doc(driverId);
+    try {
+      await _db.runTransaction((transaction) async {
+        final snapshot = await transaction.get(driverRef);
+        if (!snapshot.exists) {
+          throw Exception("Driver not found!");
+        }
+
+        final driver = DriverModel.fromMap(snapshot.data()!);
+        final oldRating = driver.rating;
+        final totalRides = driver.totalRides;
+
+        // Calculate the new average rating
+        final newAverageRating =
+            ((oldRating * totalRides) + newRating) / (totalRides + 1);
+
+        transaction.update(driverRef, {'rating': newAverageRating});
+      });
+    } catch (e) {
+      print("Error updating driver rating: $e");
+    }
+  }
+
   @override
   Future<void> close() {
     _driverSubscription?.cancel();

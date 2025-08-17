@@ -178,7 +178,16 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                   _searchHistory = state.customer.searchHistory ?? [];
                 }
                 return ListView.builder(
-                  itemCount: 4,
+                  itemCount: _searchHistory.isEmpty && _predictions.isEmpty
+                      ? 0
+                      : _predictions.isNotEmpty && _searchHistory.isEmpty
+                          ? _predictions.length
+                          : _predictions.isNotEmpty && _searchHistory.isNotEmpty
+                              ? _predictions.length
+                              : _searchHistory.isNotEmpty &&
+                                      _predictions.isEmpty
+                                  ? _searchHistory.length
+                                  : 0,
                   // showHistory ? _searchHistory.length : _predictions.length,
                   itemBuilder: (context, index) {
                     if (showHistory) {

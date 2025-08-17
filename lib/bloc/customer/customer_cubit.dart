@@ -175,6 +175,17 @@ class CustomerCubit extends Cubit<CustomerState> {
     }
   }
 
+  /// Increments the totalRides count for a customer.
+  Future<void> incrementTotalRides(String customerId) async {
+    try {
+      await _db.collection('customers').doc(customerId).update({
+        'totalRides': FieldValue.increment(1),
+      });
+    } catch (e) {
+      print("Error incrementing customer rides: $e");
+    }
+  }
+
   @override
   Future<void> close() {
     _customerSubscription?.cancel();

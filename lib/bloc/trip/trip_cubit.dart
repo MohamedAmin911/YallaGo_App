@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:taxi_app/bloc/customer/customer_cubit.dart';
+import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_states.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 
@@ -72,6 +74,13 @@ class TripCubit extends Cubit<TripState> {
         final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
         emit(TripInProgress(trip: trip));
       }
+      if (snapshot.exists && snapshot.data() != null) {
+        final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
+        if (trip.status == 'arrived_at_destination') {
+          emit(TripArrivedAtPickup());
+        }
+        emit(TripInProgress(trip: trip));
+      }
     }, onError: (error) {
       emit(TripError(message: error.toString()));
     });
@@ -94,6 +103,44 @@ class TripCubit extends Cubit<TripState> {
       emit(TripHistoryLoaded(trips: trips));
     } catch (e) {
       emit(TripError(message: "Error fetching trip history: $e"));
+    }
+  }
+
+  Future<void> processTripPayment({
+    required TripModel trip,
+    required CustomerCubit customerCubit,
+    required DriverCubit driverCubit,
+    required double rating, // <-- ADD THIS
+  }) async {
+    if (trip.driverUid == null) return;
+
+    try {
+      emit(TripLoading());
+
+      // 1. In a real app, you would call your backend here to charge the customer's saved card via Stripe.
+      // For now, we will just log it.
+      print(
+          "Simulating charge to customer ${trip.customerUid} for ${trip.estimatedFare} EGP.");
+
+      // 2. Calculate the driver's earnings (e.g., 80% of the fare).
+      final double commission = 0.20; // 20% commission
+      final double driverEarnings = trip.estimatedFare * (1 - commission);
+
+      // 3. Call the DriverCubit to add the earnings to the driver's balance.
+      await driverCubit.updateDriverRating(trip.driverUid!, rating);
+
+      await driverCubit.addEarningsToBalance(trip.driverUid!, driverEarnings);
+      await driverCubit.incrementTotalRides(trip.driverUid!); // <-- ADD THIS
+      await customerCubit.incrementTotalRides(trip.customerUid); // <-- ADD THIS
+      // 4. Update the trip status to "paid".
+      await _db.collection('trips').doc(trip.tripId).update({'status': 'paid'});
+      await _db.collection('trips').doc(trip.tripId).update({
+        'status': 'completed', // Use 'completed' instead of 'paid'
+        'ratingForDriver': rating,
+      });
+      emit(TripCompleted()); // Emit a final success state
+    } catch (e) {
+      emit(TripError(message: "Failed to process payment: ${e.toString()}"));
     }
   }
 

@@ -9,6 +9,7 @@ import 'package:taxi_app/bloc/customer/customer_states.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_states.dart';
 import 'package:taxi_app/common/extensions.dart';
@@ -20,9 +21,15 @@ import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
 import 'package:taxi_app/view/widgets/chat_bottom_sheet.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  double _rating = 5.0;
   Future<void> _navigateToSearch(BuildContext context, LatLng position) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
@@ -72,7 +79,10 @@ class HomeScreen extends StatelessWidget {
                             color: KColor.primary,
                           )),
                         if (state is HomeError)
-                          Center(child: Text(state.message)),
+                          SnackBar(
+                            content: Text(state.message),
+                            backgroundColor: KColor.red,
+                          ),
                         _buildTopUI(context),
                         _buildBottomPanel(context, state),
                       ],
@@ -801,7 +811,38 @@ class HomeScreen extends StatelessWidget {
                       size: 20.sp,
                       color: KColor.primaryText,
                       fontWeight: FontWeight.bold)),
-              SizedBox(height: 20.h),
+              SizedBox(height: 16.h),
+              Text("Please rate your driver.",
+                  style: appStyle(
+                      fontWeight: FontWeight.w600,
+                      size: 14.sp,
+                      color: KColor.secondaryText)),
+              SizedBox(height: 8.h),
+              // --- Rating Stars ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    icon: index < _rating
+                        ? Icon(
+                            Icons.star_rate_rounded,
+                            color: Colors.amber,
+                            size: 35.sp,
+                          )
+                        : Icon(
+                            Icons.star_rate_rounded,
+                            color: KColor.lightGray,
+                            size: 35.sp,
+                          ),
+                    onPressed: () {
+                      setState(() {
+                        _rating = index + 1.0;
+                      });
+                    },
+                  );
+                }),
+              ),
+              Divider(height: 24.h),
               Row(
                 children: [
                   Icon(
@@ -815,17 +856,34 @@ class HomeScreen extends StatelessWidget {
                       onTap: () {},
                     ),
                   ),
+                  SizedBox(width: 20.w),
+                  // --- Pay Button ---
+                  Expanded(
+                    child: RoundButton(
+                        title: "PAY",
+                        onPressed: () {
+                          final tripCubit = context.read<TripCubit>();
+                          final driverCubit = context.read<DriverCubit>();
+                          final customerCubit = context.read<CustomerCubit>();
+
+                          tripCubit.processTripPayment(
+                            trip: state.trip,
+                            driverCubit: driverCubit,
+                            customerCubit: customerCubit,
+                            rating: _rating,
+                          );
+
+                          context.read<HomeCubit>().loadCurrentUserLocation();
+                        },
+                        color: Colors.green),
+                  )
                 ],
               ),
-              SizedBox(height: 20.h),
-              //TODO: Add a button to report a problem to support
+              Divider(height: 24.h),
               RoundButton(
-                  title: "PAY NOW",
-                  onPressed: () {
-                    // Go back to the initial map state
-                    context.read<HomeCubit>().loadCurrentUserLocation();
-                  },
-                  color: Colors.green)
+                  title: "Report a problem",
+                  onPressed: () {},
+                  color: KColor.red)
             ],
           ),
         ),

@@ -12,6 +12,7 @@ import 'package:taxi_app/data_models/driver_model.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
+import 'package:taxi_app/services/notification_service.dart';
 
 class DriverHomeCubit extends Cubit<DriverHomeState> {
   final String driverUid;
@@ -24,6 +25,8 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
   BitmapDescriptor? _destinationIcon;
   DriverHomeCubit({required this.driverUid}) : super(DriverHomeLoading());
   StreamSubscription? _tripRequestSubscription;
+  final NotificationService _notificationService = NotificationService();
+  StreamSubscription? _acceptedTripSubscription;
   final Dio _dio = Dio();
   void setMapController(GoogleMapController controller) {
     _mapController = controller;
@@ -141,8 +144,9 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       emit(DriverHomeLoading());
       // 1. Stop listening to location updates to save battery
       await _positionStreamSubscription?.cancel();
+      await _tripRequestSubscription?.cancel();
+      await _acceptedTripSubscription?.cancel();
       _positionStreamSubscription = null;
-
       await _tripRequestSubscription?.cancel();
       _tripRequestSubscription = null;
       // 2. Update status in Firestore
@@ -245,7 +249,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         CameraUpdate.newLatLngBounds(
             _boundsFromLatLngList([driverPosition, pickupPosition]), 100.0),
       );
-
+      _listenToAcceptedTrip(trip.tripId ?? "");
       emit(DriverEnRouteToPickup(
         driverPosition: driverPosition,
         acceptedTrip: trip,
@@ -473,19 +477,48 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
 
     try {
       emit(DriverHomeLoading());
-      // Update the trip status to 'completed'
+
+      // This only updates the status to the intermediate state.
+      // It does NOT trigger the payment notification.
       await _db.collection('trips').doc(currentState.trip.tripId).update({
-        'status': 'completed',
+        'status': 'arrived_at_destination',
       });
-      // Go back to the initial online state
-      goOnline();
+
+      // After ending the trip, the driver goes back to the online state, ready for a new trip.
+
+      emit(DriverArrivedAtDestination(
+        markers: {currentState.markers.first},
+      ));
     } catch (e) {
       emit(DriverHomeError(message: "Failed to end trip: $e"));
     }
   }
 
+  /// Listens to the currently accepted trip for status changes (e.g., 'completed').
+  void _listenToAcceptedTrip(String tripId) {
+    _acceptedTripSubscription?.cancel();
+    _acceptedTripSubscription =
+        _db.collection('trips').doc(tripId).snapshots().listen((snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        final trip = TripModel.fromMap(snapshot.data()!, snapshot.id);
+
+        // Check if the trip has just been completed by the customer
+        if (trip.status == 'completed') {
+          // If so, show the notification to the driver
+          _notificationService.showNotification(
+            "Trip Completed!",
+            "You received EGP ${trip.estimatedFare.toStringAsFixed(2)} and were rated ${trip.ratingForDriver} stars.",
+          );
+          // Stop listening to this trip and go back to being online
+          goOnline();
+        }
+      }
+    });
+  }
+
   @override
   Future<void> close() {
+    _acceptedTripSubscription?.cancel();
     _unreadChatSubscription?.cancel();
     _positionStreamSubscription?.cancel();
     _tripRequestSubscription?.cancel();

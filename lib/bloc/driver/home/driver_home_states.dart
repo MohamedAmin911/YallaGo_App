@@ -105,6 +105,15 @@ class DriverTripInProgress extends DriverHomeState {
   List<Object?> get props => [trip, markers, polylines];
 }
 
+class DriverArrivedAtDestination extends DriverHomeState {
+  final Set<Marker> markers;
+
+  const DriverArrivedAtDestination({required this.markers});
+
+  @override
+  List<Object?> get props => [markers];
+}
+
 class DriverHomeError extends DriverHomeState {
   final String message;
 

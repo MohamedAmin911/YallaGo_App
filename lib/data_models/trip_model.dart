@@ -13,7 +13,7 @@ class TripModel {
   final double estimatedFare;
   final double? actualFare;
   final String? paymentMethodId;
-  final int? ratingForDriver;
+  final double? ratingForDriver;
   final String? customerName;
   final String? customerImageUrl;
 
@@ -70,7 +70,7 @@ class TripModel {
       estimatedFare: (map['estimatedFare'] as num?)?.toDouble() ?? 0.0,
       actualFare: (map['actualFare'] as num?)?.toDouble(),
       paymentMethodId: map['paymentMethodId'],
-      ratingForDriver: map['ratingForDriver'] as int?,
+      ratingForDriver: map['ratingForDriver'] as double?,
       customerName: map['customerName'],
       customerImageUrl: map['customerImageUrl'],
     );
