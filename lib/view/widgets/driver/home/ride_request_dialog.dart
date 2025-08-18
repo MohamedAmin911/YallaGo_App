@@ -81,6 +81,7 @@ void showRideRequestDialog(BuildContext context, TripModel trip) {
                 title: "DECLINE",
                 onPressed: () {
                   Navigator.of(dialogContext).pop();
+                  context.read<DriverHomeCubit>().goOnline();
                 },
                 color: KColor.red,
               ),

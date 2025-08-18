@@ -476,16 +476,15 @@ class HomeCubit extends Cubit<HomeState> {
         case 'driver_arrived':
           _handleDriverArrived(trip);
           break;
-        // --- NEW CASES ---
         case 'in_progress':
           _handleTripInProgress(trip);
           break;
         case 'arrived_at_destination':
           _handleTripCompleted(trip);
           break;
-        // --- END NEW CASES ---
         case 'cancelled':
           cancelTripRequest(tripId);
+
           break;
       }
     });
@@ -495,6 +494,8 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       // The listener will automatically handle the state change when it sees this update.
       await _db.collection('trips').doc(tripId).update({'status': 'cancelled'});
+      await _tripSubscription?.cancel();
+      loadCurrentUserLocation();
     } catch (e) {
       // Emit an error if the cancellation fails
       emit(HomeError(message: "Failed to cancel trip: ${e.toString()}"));

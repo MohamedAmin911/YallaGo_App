@@ -10,16 +10,16 @@ import 'package:taxi_app/bloc/trip/trip_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/app_drawer.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/confirmation_panel.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/driver_arrived_panel.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/driver_en_route_panel.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/google_map_widget.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/search_panel.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/searching_panel.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/top_ui.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/trip_completed_panel.dart';
-import 'package:taxi_app/view/widgets/customer_home_widgets/trip_in_progress_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/app_drawer.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/confirmation_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/driver_arrived_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/driver_en_route_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/google_map_widget.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/search_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/searching_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/top_ui.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/trip_completed_panel.dart';
+import 'package:taxi_app/view/widgets/customer/customer_home_widgets/trip_in_progress_panel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
