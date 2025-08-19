@@ -63,6 +63,7 @@ dependencies:
   flutter_colorpicker:
   flutter_local_notifications:
   flutter_rating_bar:
+  intl:
 
 dev_dependencies:
   flutter_test:

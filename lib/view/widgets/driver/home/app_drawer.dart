@@ -7,6 +7,8 @@ import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/extensions.dart';
+import 'package:taxi_app/view/widgets/driver/drawer_screens/driver_profile_screen.dart';
+import 'package:taxi_app/view/widgets/driver/drawer_screens/ride_history_screen.dart';
 
 Widget buildAppDrawer(BuildContext context) {
   return Drawer(
@@ -41,7 +43,11 @@ Widget buildAppDrawer(BuildContext context) {
                 color: KColor.placeholder,
                 fontWeight: FontWeight.bold),
           ),
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DriverProfileScreen()),
+            );
+          },
         ),
         ListTile(
           leading: Icon(
@@ -71,7 +77,12 @@ Widget buildAppDrawer(BuildContext context) {
                 color: KColor.placeholder,
                 fontWeight: FontWeight.bold),
           ),
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const RideHistoryScreen()),
+            );
+          },
         ),
         const Spacer(),
         Padding(
