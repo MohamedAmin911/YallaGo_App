@@ -52,7 +52,7 @@ class DriverHomeScreen extends StatelessWidget {
             }
           },
           child: Scaffold(
-            drawer: buildAppDrawer(context),
+            drawer: const DriverAppDrawer(),
             body: Builder(
               builder: (context) {
                 return BlocListener<DriverHomeCubit, DriverHomeState>(

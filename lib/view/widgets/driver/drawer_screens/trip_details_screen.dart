@@ -64,56 +64,50 @@ class TripDetailsScreen extends StatelessWidget {
                 title: "To",
                 value: trip.destinationAddress,
               ),
-            ],
-          ),
-          SizedBox(height: 20.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: const Divider(),
+              ),
+              // --- Payment & Rating Card ---
 
-          // --- Payment & Rating Card ---
-          _buildInfoCard(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              _buildDetailRow(
+                icon: Icons.attach_money,
+                title: "Final Fare",
+                value: "EGP ${trip.estimatedFare.toStringAsFixed(2)}",
+                valueColor: Colors.green,
+              ),
+              const Divider(),
+              // --- Rating Card ---
+              Row(
                 children: [
-                  _buildDetailRow(
-                    icon: Icons.attach_money,
-                    title: "Final Fare",
-                    value: "EGP ${trip.estimatedFare.toStringAsFixed(2)}",
-                    valueColor: Colors.green,
+                  Icon(
+                    size: 20.sp,
+                    Icons.star_rate_rounded,
+                    color: Colors.amber,
                   ),
-                  const Divider(),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star_rate_rounded,
-                        color: Colors.amber,
-                      ),
-                      SizedBox(width: 10.w),
-                      Text(
-                        "Rating Received",
-                        style: appStyle(
-                            size: 12.sp,
-                            color: KColor.secondaryText,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5.h),
-                  Center(
-                    child: RatingBarIndicator(
-                      rating: trip.ratingForDriver != null
-                          ? trip.ratingForDriver ?? 0
-                          : 0,
-                      itemBuilder: (context, index) => const Icon(
-                        Icons.star_rate_rounded,
-                        color: Colors.amber,
-                      ),
-                      itemCount: 5,
-                      itemSize: 40.sp,
-                      unratedColor: KColor.placeholder.withOpacity(0.5),
-                      direction: Axis.horizontal,
-                    ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    "Rating Received",
+                    style: appStyle(
+                        size: 12.sp,
+                        color: KColor.secondaryText,
+                        fontWeight: FontWeight.bold),
                   ),
                 ],
+              ),
+              SizedBox(height: 5.h),
+              RatingBarIndicator(
+                rating: trip.ratingForDriver != null
+                    ? trip.ratingForDriver ?? 0
+                    : 0,
+                itemBuilder: (context, index) => const Icon(
+                  Icons.star_rate_rounded,
+                  color: Colors.amber,
+                ),
+                itemCount: 5,
+                itemSize: 40.sp,
+                unratedColor: KColor.placeholder.withOpacity(0.5),
+                direction: Axis.horizontal,
               ),
             ],
           ),
@@ -133,8 +127,7 @@ class TripDetailsScreen extends StatelessWidget {
                   ? Image.network(
                       trip.customerImageUrl!,
                       width: 150.w,
-                      height: 100.h,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                     )
                   : Container(
                       width: 100.w,
@@ -169,10 +162,10 @@ class TripDetailsScreen extends StatelessWidget {
 
   Widget _buildInfoCard({required List<Widget> children}) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Column(children: children),
       ),
     );

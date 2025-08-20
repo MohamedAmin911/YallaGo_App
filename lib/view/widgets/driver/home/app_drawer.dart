@@ -1,100 +1,166 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
+import 'package:taxi_app/bloc/driver/driver_cubit.dart';
+import 'package:taxi_app/bloc/driver/driver_states.dart';
+import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
-import 'package:taxi_app/common/images.dart';
-import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/view/widgets/driver/drawer_screens/driver_profile_screen.dart';
 import 'package:taxi_app/view/widgets/driver/drawer_screens/ride_history_screen.dart';
 
-Widget buildAppDrawer(BuildContext context) {
-  return Drawer(
-    backgroundColor: KColor.bg,
-    shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-      bottomRight: Radius.circular(22.r),
-      topRight: Radius.circular(22.r),
-    )),
-    child: Column(
-      children: <Widget>[
-        DrawerHeader(
-          padding: EdgeInsets.all(40.w),
-          curve: Curves.bounceIn,
-          decoration: BoxDecoration(
+class DriverAppDrawer extends StatelessWidget {
+  const DriverAppDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: KColor.bg,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+        bottomRight: Radius.circular(22.r),
+        topRight: Radius.circular(22.r),
+      )),
+      child: Column(
+        children: <Widget>[
+          BlocBuilder<DriverCubit, DriverState>(
+            builder: (context, state) {
+              String driverName = "Loading...";
+              String? driverImageUrl;
+
+              if (state is DriverLoaded) {
+                driverName = state.driver.fullName;
+                driverImageUrl = state.driver.profileImageUrl;
+              }
+
+              return DrawerHeader(
+                padding: EdgeInsets.only(left: 16.w, top: 20.h),
+                decoration: BoxDecoration(
+                    color: KColor.bg,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(22.r),
+                    )),
+                child: Center(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Material(
+                        elevation: 5,
+                        borderRadius: BorderRadius.circular(30.r),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(30.r),
+                          child: (driverImageUrl != null &&
+                                  driverImageUrl.isNotEmpty)
+                              ? Image.network(
+                                  driverImageUrl,
+                                  width: 120.w,
+                                  height: 120.h,
+                                  fit: BoxFit.fill,
+                                )
+                              : null,
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 10.h),
+                          Text(
+                            "welcome",
+                            style: appStyle(
+                              size: 14.sp,
+                              color: KColor.placeholder,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 150.w,
+                            child: Text(
+                              driverName,
+                              maxLines: 2,
+                              style: appStyle(
+                                size: 25.sp,
+                                color: KColor.primaryText,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.person_2_rounded,
               color: KColor.primary,
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(22.r),
-              )),
-          child: Image.asset(KImage.logo4),
-        ),
-        ListTile(
-          leading: Icon(
-            Icons.person,
-            color: KColor.placeholder,
-            size: 25.sp,
+              size: 30.sp,
+            ),
+            title: Text(
+              'Profile',
+              style: appStyle(
+                  size: 15.sp,
+                  color: KColor.placeholder,
+                  fontWeight: FontWeight.bold),
+            ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const DriverProfileScreen()),
+              );
+            },
           ),
-          title: Text(
-            'Profile',
-            style: appStyle(
-                size: 15.sp,
-                color: KColor.placeholder,
-                fontWeight: FontWeight.bold),
+          ListTile(
+            leading: Icon(
+              Icons.payment_rounded,
+              color: KColor.primary,
+              size: 30.sp,
+            ),
+            title: Text(
+              'Payment',
+              style: appStyle(
+                  size: 15.sp,
+                  color: KColor.placeholder,
+                  fontWeight: FontWeight.bold),
+            ),
+            onTap: () {},
           ),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const DriverProfileScreen()),
-            );
-          },
-        ),
-        ListTile(
-          leading: Icon(
-            Icons.payment,
-            color: KColor.placeholder,
-            size: 25.sp,
+          ListTile(
+            leading: Icon(
+              Icons.history_rounded,
+              color: KColor.primary,
+              size: 30.sp,
+            ),
+            title: Text(
+              'Ride History',
+              style: appStyle(
+                  size: 15.sp,
+                  color: KColor.placeholder,
+                  fontWeight: FontWeight.bold),
+            ),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const RideHistoryScreen()),
+              );
+            },
           ),
-          title: Text(
-            'Payment',
-            style: appStyle(
-                size: 15.sp,
-                color: KColor.placeholder,
-                fontWeight: FontWeight.bold),
+          const Spacer(),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+            child: RoundButton(
+                title: "SIGN OUT",
+                onPressed: () {
+                  context.read<AuthCubit>().signOut();
+                },
+                color: KColor.placeholder),
           ),
-          onTap: () {},
-        ),
-        ListTile(
-          leading: Icon(
-            Icons.history,
-            color: KColor.placeholder,
-            size: 25.sp,
-          ),
-          title: Text(
-            'Ride History',
-            style: appStyle(
-                size: 15.sp,
-                color: KColor.placeholder,
-                fontWeight: FontWeight.bold),
-          ),
-          onTap: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const RideHistoryScreen()),
-            );
-          },
-        ),
-        const Spacer(),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
-          child: RoundButton(
-              title: "SIGN OUT",
-              onPressed: () {
-                context.read<AuthCubit>().signOut();
-              },
-              color: KColor.placeholder),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

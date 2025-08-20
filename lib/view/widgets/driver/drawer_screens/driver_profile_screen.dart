@@ -111,9 +111,8 @@ class DriverProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30.r),
                     child: Image.network(
                       driver.profileImageUrl!,
-                      height: 300.h,
-                      width: 600.w,
-                      fit: BoxFit.fitWidth,
+                      width: 300.w,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 )
@@ -175,13 +174,13 @@ class DriverProfileScreen extends StatelessWidget {
     return Text(
       title,
       style: appStyle(
-          size: 18.sp, fontWeight: FontWeight.w600, color: KColor.primaryText),
+          size: 18.sp, fontWeight: FontWeight.w800, color: KColor.placeholder),
     );
   }
 
   Widget _buildVehicleInfoCard(DriverModel driver) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       child: Padding(
         padding: EdgeInsets.all(16.w),
@@ -193,9 +192,8 @@ class DriverProfileScreen extends StatelessWidget {
               child: driver.carImageUrl != null
                   ? Image.network(
                       driver.carImageUrl!,
-                      width: 150.w,
-                      height: 100.h,
-                      fit: BoxFit.cover,
+                      width: 140.w,
+                      fit: BoxFit.fitWidth,
                     )
                   : Container(
                       width: 100.w,
@@ -217,7 +215,7 @@ class DriverProfileScreen extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                         color: KColor.primaryText),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 10.h),
                   Text(
                     driver.licensePlate,
                     style: appStyle(
@@ -225,7 +223,7 @@ class DriverProfileScreen extends StatelessWidget {
                         color: KColor.secondaryText,
                         fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 10.h),
                   Container(
                     width: 50.w,
                     height: 10.h,
