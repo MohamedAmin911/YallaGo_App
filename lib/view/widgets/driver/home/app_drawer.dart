@@ -48,9 +48,9 @@ class DriverAppDrawer extends StatelessWidget {
                     children: [
                       Material(
                         elevation: 5,
-                        borderRadius: BorderRadius.circular(30.r),
+                        borderRadius: BorderRadius.circular(10.r),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30.r),
+                          borderRadius: BorderRadius.circular(10.r),
                           child: (driverImageUrl != null &&
                                   driverImageUrl.isNotEmpty)
                               ? Image.network(
