@@ -185,6 +185,7 @@ class DriverProfileScreen extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(16.w),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Car Image
             ClipRRect(
@@ -210,6 +211,7 @@ class DriverProfileScreen extends StatelessWidget {
                 children: [
                   Text(
                     driver.carModel,
+                    maxLines: 2,
                     style: appStyle(
                         size: 20.sp,
                         fontWeight: FontWeight.w900,
