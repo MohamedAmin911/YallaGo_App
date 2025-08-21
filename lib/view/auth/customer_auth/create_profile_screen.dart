@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,6 +25,7 @@ class CreateProfileScreen extends StatefulWidget {
 
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _auth = FirebaseAuth.instance;
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _homeAddressController = TextEditingController();
@@ -122,7 +124,16 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Profile Created Successfully!")),
           );
-          context.pushRlacement(const AddPaymentMethod());
+          print("-----------------------" + _email.text);
+          print("----------------------- ${_auth.currentUser!.phoneNumber}");
+          print("----------------------- ${_auth.currentUser!.uid}");
+          context.pushRlacement(AddPaymentMethod(
+            customerUid: _auth.currentUser!.uid,
+            email: _email.text,
+            fullName:
+                "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
+            phoneNumber: _auth.currentUser!.phoneNumber ?? "",
+          ));
         } else if (state is CustomerError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: KColor.red),
