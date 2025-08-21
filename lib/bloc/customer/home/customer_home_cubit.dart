@@ -460,7 +460,18 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void listenToTripUpdates(String tripId) {
-    emit(HomeSearchingForDriver(tripId: tripId));
+    final currentState = state;
+    // Ensure we are coming from a state that has the required data
+    if (currentState is! HomeRouteReady) return;
+    final customerMarker = currentState.markers.firstWhere(
+      (m) => m.markerId.value == 'pickup',
+      orElse: () => currentState.markers.first, // Fallback
+    );
+    emit(HomeSearchingForDriver(
+      tripId: tripId,
+      currentPosition: currentState.pickupPosition,
+      markers: {customerMarker},
+    ));
     _tripSubscription?.cancel();
     _assignedDriverSubscription?.cancel();
 

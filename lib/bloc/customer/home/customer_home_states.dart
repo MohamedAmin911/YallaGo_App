@@ -66,10 +66,15 @@ class HomeRouteReady extends HomeState {
 /// State for when the app is actively searching for a driver.
 class HomeSearchingForDriver extends HomeState {
   final String tripId;
-  const HomeSearchingForDriver({required this.tripId});
-
+  const HomeSearchingForDriver({
+    required this.tripId,
+    required this.currentPosition,
+    required this.markers,
+  });
+  final LatLng currentPosition;
+  final Set<Marker> markers;
   @override
-  List<Object?> get props => [tripId];
+  List<Object?> get props => [tripId, currentPosition, markers];
 }
 
 /// State for when a driver has accepted the trip and is on their way.

@@ -79,8 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     return Stack(
                       children: [
                         buildGoogleMap(context, state),
-                        if (state is HomeLoading ||
-                            state is HomeSearchingForDriver)
+                        if (state is HomeLoading)
                           Center(
                               child: CircularProgressIndicator(
                             color: KColor.primary,
