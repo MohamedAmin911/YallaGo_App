@@ -7,7 +7,7 @@ import 'package:taxi_app/bloc/driver/driver_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/data_models/driver_model.dart';
-import 'package:taxi_app/view/widgets/driver/drawer_screens/ride_history_screen.dart';
+import 'package:taxi_app/view/driver%20home/drawer_screens/ride_history_screen.dart';
 
 class DriverProfileScreen extends StatelessWidget {
   const DriverProfileScreen({super.key});
@@ -31,7 +31,8 @@ class DriverProfileScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is! DriverLoaded) {
             // Show a loading indicator until the driver's data is available
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+                child: CircularProgressIndicator(color: KColor.primary));
           }
           final driver = state.driver;
 

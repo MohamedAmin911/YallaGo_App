@@ -2,13 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:taxi_app/bloc/ride_history/cubit.dart';
-import 'package:taxi_app/bloc/ride_history/states.dart';
+import 'package:taxi_app/bloc/driver/driver_ride_history/cubit.dart';
+import 'package:taxi_app/bloc/driver/driver_ride_history/states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 import 'package:intl/intl.dart';
-import 'package:taxi_app/view/widgets/driver/drawer_screens/trip_details_screen.dart';
+import 'package:taxi_app/view/driver%20home/drawer_screens/trip_details_screen.dart';
 
 class RideHistoryScreen extends StatelessWidget {
   const RideHistoryScreen({super.key});

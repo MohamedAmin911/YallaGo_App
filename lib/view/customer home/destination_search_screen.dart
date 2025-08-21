@@ -8,10 +8,10 @@ import 'package:taxi_app/bloc/customer/customer_states.dart';
 import 'package:taxi_app/common/api_keys.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
-import 'package:taxi_app/view/widgets/customer/location_search/search_app_bar.dart';
-import 'package:taxi_app/view/widgets/customer/location_search/search_history_item.dart';
-import 'package:taxi_app/view/widgets/customer/location_search/search_input_field.dart';
-import 'package:taxi_app/view/widgets/customer/location_search/search_prediction_item.dart';
+import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_app_bar.dart';
+import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_history_item.dart';
+import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_input_field.dart';
+import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_prediction_item.dart';
 import 'package:uuid/uuid.dart';
 
 class DestinationSearchScreen extends StatefulWidget {

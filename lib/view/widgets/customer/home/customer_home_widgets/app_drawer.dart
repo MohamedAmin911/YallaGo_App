@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
-import 'package:taxi_app/bloc/driver/driver_cubit.dart';
-import 'package:taxi_app/bloc/driver/driver_states.dart';
+import 'package:taxi_app/bloc/customer/customer_cubit.dart';
+import 'package:taxi_app/bloc/customer/customer_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
-import 'package:taxi_app/view/driver%20home/drawer_screens/driver_profile_screen.dart';
-import 'package:taxi_app/view/driver%20home/drawer_screens/ride_history_screen.dart';
+import 'package:taxi_app/view/customer%20home/drawer_screens/customer_profile_screen.dart';
+import 'package:taxi_app/view/customer%20home/drawer_screens/ride_history.dart';
 
-class DriverAppDrawer extends StatelessWidget {
-  const DriverAppDrawer({super.key});
+class CustomerAppDrawer extends StatelessWidget {
+  const CustomerAppDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +24,14 @@ class DriverAppDrawer extends StatelessWidget {
       )),
       child: Column(
         children: <Widget>[
-          BlocBuilder<DriverCubit, DriverState>(
+          BlocBuilder<CustomerCubit, CustomerState>(
             builder: (context, state) {
-              String driverName = "Loading...";
-              String? driverImageUrl;
+              String customerName = "Loading...";
+              String? customerImageUrl;
 
-              if (state is DriverLoaded) {
-                driverName = state.driver.fullName;
-                driverImageUrl = state.driver.profileImageUrl;
+              if (state is CustomerLoaded) {
+                customerName = state.customer.fullName ?? "Customer";
+                customerImageUrl = state.customer.profileImageUrl;
               }
 
               return DrawerHeader(
@@ -47,14 +47,14 @@ class DriverAppDrawer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Material(
-                        elevation: 5,
                         borderRadius: BorderRadius.circular(10.r),
+                        elevation: 5,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10.r),
-                          child: (driverImageUrl != null &&
-                                  driverImageUrl.isNotEmpty)
+                          child: (customerImageUrl != null &&
+                                  customerImageUrl.isNotEmpty)
                               ? Image.network(
-                                  driverImageUrl,
+                                  customerImageUrl,
                                   width: 120.w,
                                   fit: BoxFit.fitWidth,
                                 )
@@ -77,7 +77,7 @@ class DriverAppDrawer extends StatelessWidget {
                           SizedBox(
                             width: 150.w,
                             child: Text(
-                              driverName,
+                              customerName,
                               maxLines: 2,
                               style: appStyle(
                                 size: 25.sp,
@@ -109,7 +109,8 @@ class DriverAppDrawer extends StatelessWidget {
             ),
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const DriverProfileScreen()),
+                MaterialPageRoute(
+                    builder: (_) => const CustomerProfileScreen()),
               );
             },
           ),
@@ -142,7 +143,6 @@ class DriverAppDrawer extends StatelessWidget {
                   fontWeight: FontWeight.bold),
             ),
             onTap: () {
-              Navigator.of(context).pop();
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const RideHistoryScreen()),
               );

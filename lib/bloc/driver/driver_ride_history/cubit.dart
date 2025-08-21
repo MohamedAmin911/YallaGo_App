@@ -1,7 +1,7 @@
 // --- Cubit ---
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:taxi_app/bloc/ride_history/states.dart';
+import 'package:taxi_app/bloc/driver/driver_ride_history/states.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 
 class RideHistoryCubit extends Cubit<RideHistoryState> {
