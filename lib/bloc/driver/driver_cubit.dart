@@ -14,6 +14,35 @@ class DriverCubit extends Cubit<DriverState> {
 
   DriverCubit() : super(DriverInitial());
 
+// Pipedream base (no trailing slash)
+  final String base = 'https://eocyz9fe1kyb8l0.m.pipedream.net';
+
+  Map<String, String> get _headers => {
+        'Content-Type': 'application/json',
+        'x-api-key': KapiKeys
+            .pipedreamApiKey, // must match APP_API_KEY (env) in Pipedream
+      };
+
+  Future<Map<String, dynamic>> _postJson(
+      String path, Map<String, dynamic> body) async {
+    final res = await http.post(
+      Uri.parse('$base$path'),
+      headers: _headers,
+      body: json.encode(body),
+    );
+    final raw = res.body.isEmpty ? '{}' : res.body;
+    Map<String, dynamic> data;
+    try {
+      data = json.decode(raw) as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Bad JSON from $path: $raw');
+    }
+    if (data['ok'] == false) {
+      throw Exception('API error on $path: ${data['error']}');
+    }
+    return data;
+  }
+
   /// Creates a complete driver profile, including uploading images and saving to Firestore.
   Future<void> createDriverProfile({
     required String uid,
@@ -39,8 +68,7 @@ class DriverCubit extends Cubit<DriverState> {
           driversLicenseUrl,
           carLicenseUrl,
           criminalRecordUrl;
-
-      // Upload all images in parallel for better performance
+      // Upload files in parallel
       await Future.wait([
         if (profileImageFile != null)
           _uploadImageToCloudinary(profileImageFile, uid)
@@ -48,8 +76,6 @@ class DriverCubit extends Cubit<DriverState> {
         if (carImageFile != null)
           _uploadImageToCloudinary(carImageFile, '${uid}_car')
               .then((url) => carImageUrl = url),
-
-        // --- NEW UPLOADS ---
         _uploadImageToCloudinary(nationalIdFile, '${uid}_national_id')
             .then((url) => nationalIdUrl = url),
         _uploadImageToCloudinary(driversLicenseFile, '${uid}_drivers_license')
@@ -78,91 +104,118 @@ class DriverCubit extends Cubit<DriverState> {
         stripeConnectAccountId: stripeConnectAccountId,
       );
 
+      // set() creates or overwrites (safe)
       await _db.collection('drivers').doc(uid).set(newDriver.toMap());
-
       emit(DriverProfileCreated());
     } catch (e) {
       emit(DriverError(message: "Failed to create driver profile: $e"));
     }
   }
 
-  /// Creates a real Stripe Connect account and returns the account ID.
-  Future<String?> initiateStripeConnectOnboarding(
-      {required String email, required String phone}) async {
+  /// Create a Stripe Connect Express account. Returns acct_...; does NOT write to Firestore.
+  Future<String?> createDriverConnectAccount({
+    required String driverUid,
+    required String email,
+  }) async {
     emit(DriverLoading());
     try {
-      final response = await http.post(
-        Uri.parse("https://api.stripe.com/v1/accounts"),
-        headers: {
-          'Authorization': 'Bearer ${KapiKeys.stripeSecretKey}',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'type': 'standard',
-          'country': 'US',
-          'email': email,
-          'business_type': 'individual',
-          'individual[email]': email,
-          // 'individual[phone]': phone,
-        },
-      );
+      final data = await _postJson('/connect_create_driver', {
+        'email': email,
+        'appDriverUid': driverUid,
+      });
 
-      if (response.statusCode == 200) {
-        final accountData = json.decode(response.body);
-        final accountId = accountData['id'];
-        print("Successfully created Stripe Connect account: $accountId");
-        return accountId;
-      } else {
-        // If the API call fails, throw an error
-        final errorData = json.decode(response.body);
-        print(
-            'Failed to create Stripe account: ${errorData['error']['message']}');
-        throw Exception(
-            'Failed to create Stripe account: ${errorData['error']['message']}');
+      final account = data['account'] as Map<String, dynamic>?;
+      final accountId = account?['id'] as String?;
+      if (accountId == null || accountId.isEmpty) {
+        throw Exception('No account id in response: $data');
       }
+
+      // Do NOT update Firestore here (doc may not exist yet).
+      // Return the accountId; call createDriverProfile later with this id.
+      emit(DriverInitial()); // clear loading state for UI
+      return accountId;
     } catch (e) {
-      // --- THE FIX IS HERE ---
-      // Emit an error state so the UI stops loading and shows the message.
-      emit(DriverError(message: e.toString()));
-      return null; // Return null to indicate failure.
+      emit(DriverError(message: 'Failed to create Connect account: $e'));
+      return null;
     }
   }
 
-  /// Private helper to upload an image to Cloudinary and return the secure URL.
+  /// Generate onboarding link for the driver account (open in WebView).
+  Future<String?> createDriverOnboardingLink({
+    required String accountId,
+    required String returnUrl,
+    required String refreshUrl,
+  }) async {
+    try {
+      final data = await _postJson('/connect_account_link', {
+        'accountId': accountId,
+        'returnUrl': returnUrl,
+        'refreshUrl': refreshUrl,
+      });
+      final link = data['link'] as Map<String, dynamic>?;
+      return link?['url'] as String?;
+    } catch (e) {
+      emit(DriverError(message: 'Failed to create onboarding link: $e'));
+      return null;
+    }
+  }
+
+  /// Transfer funds (simulated in test mode) to the driver’s Connect account.
+  Future<void> transferToDriver({
+    required String accountId,
+    required int amountCents,
+    String currency = 'usd',
+  }) async {
+    try {
+      final data = await _postJson('/connect_transfer_to_driver', {
+        'destinationAccountId': accountId,
+        'amountCents': amountCents,
+        'currency': currency,
+      });
+
+      final transfer = data['transfer'] as Map<String, dynamic>?;
+      if (transfer == null || transfer['id'] == null) {
+        throw Exception('Transfer failed: $data');
+      }
+      // Optionally update internal ledger here (driver balance)
+    } catch (e) {
+      emit(DriverError(message: 'Transfer error: $e'));
+    }
+  }
+
+  /// Upload to Cloudinary
   Future<String?> _uploadImageToCloudinary(
       File imageFile, String publicId) async {
     final url = Uri.parse(
-        "https://api.cloudinary.com/v1_1/${KapiKeys.cloudinaryCloudName}/image/upload");
+      "https://api.cloudinary.com/v1_1/${KapiKeys.cloudinaryCloudName}/image/upload",
+    );
     final request = http.MultipartRequest('POST', url)
       ..fields['upload_preset'] = KapiKeys.cloudinaryUploadPreset
-      ..fields['public_id'] = publicId // Use the UID as the filename
+      ..fields['public_id'] = publicId
       ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
 
     final response = await request.send();
     if (response.statusCode == 200) {
-      final responseData = await response.stream.toBytes();
-      final responseString = String.fromCharCodes(responseData);
-      final jsonMap = json.decode(responseString);
-      return jsonMap['secure_url'];
+      final bytes = await response.stream.toBytes();
+      final jsonMap = json.decode(String.fromCharCodes(bytes));
+      return jsonMap['secure_url'] as String?;
     } else {
-      print('Cloudinary Error: ${await response.stream.bytesToString()}');
-      throw Exception('Failed to upload image to Cloudinary.');
+      final err = await response.stream.bytesToString();
+      throw Exception('Cloudinary upload failed: $err');
     }
   }
 
-  /// Checks if a driver document exists in Firestore for a given UID.
+  /// Check if a driver doc exists
   Future<bool> checkIfDriverExists(String uid) async {
-    print("Checking if driver exists: $uid");
     try {
       final doc = await _db.collection('drivers').doc(uid).get();
       return doc.exists;
     } catch (e) {
-      print("Error checking if driver exists: $e");
       return false;
     }
   }
 
-  /// Listens to real-time updates for a specific driver.
+  /// Listen to a driver doc
   void listenToDriver(String uid) {
     emit(DriverLoading());
     _driverSubscription?.cancel();
@@ -177,7 +230,7 @@ class DriverCubit extends Cubit<DriverState> {
     });
   }
 
-  /// Updates a driver's document with the given data.
+  /// Update driver doc (requires doc to exist)
   Future<void> updateDriver(String uid, Map<String, dynamic> data) async {
     try {
       await _db.collection('drivers').doc(uid).update(data);
@@ -188,48 +241,38 @@ class DriverCubit extends Cubit<DriverState> {
 
   Future<void> addEarningsToBalance(String driverId, double earnings) async {
     try {
-      // Use FieldValue.increment to safely add the earnings to the existing balance.
       await _db.collection('drivers').doc(driverId).update({
         'balance': FieldValue.increment(earnings),
       });
     } catch (e) {
-      // In a real app, you would have more robust error handling here.
-      print("Error updating driver balance: $e");
+// Swallow error in test; consider emitting state if needed
     }
   }
 
-  /// Increments the totalRides count for a driver.
   Future<void> incrementTotalRides(String driverId) async {
     try {
       await _db.collection('drivers').doc(driverId).update({
         'totalRides': FieldValue.increment(1),
       });
     } catch (e) {
-      print("Error incrementing driver rides: $e");
+// Swallow error in test
     }
   }
 
   Future<void> updateDriverRating(String driverId, double newRating) async {
-    final driverRef = _db.collection('drivers').doc(driverId);
+    final ref = _db.collection('drivers').doc(driverId);
     try {
-      await _db.runTransaction((transaction) async {
-        final snapshot = await transaction.get(driverRef);
-        if (!snapshot.exists) {
-          throw Exception("Driver not found!");
-        }
-
-        final driver = DriverModel.fromMap(snapshot.data()!);
+      await _db.runTransaction((tx) async {
+        final snap = await tx.get(ref);
+        if (!snap.exists) throw Exception("Driver not found!");
+        final driver = DriverModel.fromMap(snap.data()!);
         final oldRating = driver.rating;
         final totalRides = driver.totalRides;
-
-        // Calculate the new average rating
-        final newAverageRating =
-            ((oldRating * totalRides) + newRating) / (totalRides + 1);
-
-        transaction.update(driverRef, {'rating': newAverageRating});
+        final avg = ((oldRating * totalRides) + newRating) / (totalRides + 1);
+        tx.update(ref, {'rating': avg});
       });
     } catch (e) {
-      print("Error updating driver rating: $e");
+// Log only
     }
   }
 

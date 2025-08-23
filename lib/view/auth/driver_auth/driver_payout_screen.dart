@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
-import 'package:taxi_app/view/driver%20home/driver_home_screen.dart';
-
+import 'package:taxi_app/view/auth/driver_auth/driver_signup_or_loging_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,6 +11,7 @@ import 'package:taxi_app/bloc/auth/auth_states.dart';
 import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/bloc/driver/driver_states.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class DriverPayoutScreen extends StatelessWidget {
   // Receives ALL data from the entire sign-up flow
@@ -42,7 +42,12 @@ class DriverPayoutScreen extends StatelessWidget {
     required this.criminalRecordFile,
   });
 
-  void _connectStripeAndFinish(BuildContext context) async {
+  // Choose any HTTPS URLs you control (or temporary ones).
+  // We’ll detect these inside the WebView to know when onboarding finished/failed.
+  static const String _stripeReturnUrl = 'https://example.com/stripe-return';
+  static const String _stripeRefreshUrl = 'https://example.com/stripe-refresh';
+
+  Future<void> _connectStripeAndFinish(BuildContext context) async {
     final driverCubit = context.read<DriverCubit>();
     final authState = context.read<AuthCubit>().state;
 
@@ -53,17 +58,59 @@ class DriverPayoutScreen extends StatelessWidget {
       return;
     }
 
+    final driverUid = authState.user.uid;
+    final phone = authState.user.phoneNumber ?? "";
+
     try {
-      // This simulates the Stripe Connect onboarding and returns the account ID
-      final stripeAccountId = await driverCubit.initiateStripeConnectOnboarding(
+      // 1) Create (or reuse) a Stripe Connect account via your backend (Pipedream).
+      // Make sure createDriverConnectAccount returns the accountId (String?)
+      final accountId = await driverCubit.createDriverConnectAccount(
+        driverUid: driverUid,
         email: email,
-        phone: authState.user.phoneNumber ?? "",
       );
 
-      // Now, call the final upload function with all the data
+      if (accountId == null || accountId.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to create Stripe account.")),
+        );
+        return;
+      }
+
+      // 2) Create onboarding link and open in WebView
+      final onboardingUrl = await driverCubit.createDriverOnboardingLink(
+        accountId: accountId,
+        returnUrl: _stripeReturnUrl,
+        refreshUrl: _stripeRefreshUrl,
+      );
+
+      if (onboardingUrl == null || onboardingUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to get onboarding link.")),
+        );
+        return;
+      }
+
+      final completed = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => _StripeOnboardingWebView(
+            startUrl: onboardingUrl,
+            returnUrl: _stripeReturnUrl,
+            refreshUrl: _stripeRefreshUrl,
+          ),
+        ),
+      );
+
+      if (completed != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Onboarding was cancelled.")),
+        );
+        return;
+      }
+
+      // 3) Finish driver profile creation (uploads + Firestore)
       await driverCubit.createDriverProfile(
-        uid: authState.user.uid,
-        phoneNumber: authState.user.phoneNumber ?? "N/A",
+        uid: driverUid,
+        phoneNumber: phone,
         fullName: fullName,
         email: email,
         profileImageFile: profileImageFile,
@@ -75,10 +122,13 @@ class DriverPayoutScreen extends StatelessWidget {
         driversLicenseFile: driversLicenseFile,
         carLicenseFile: carLicenseFile,
         criminalRecordFile: criminalRecordFile,
-        stripeConnectAccountId: stripeAccountId ?? "",
+        stripeConnectAccountId: accountId, // IMPORTANT: save it
       );
     } catch (e) {
-      // The cubit will emit an error state which is handled by the listener
+      // Errors are also emitted via DriverCubit -> DriverError
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Stripe onboarding error: $e")),
+      );
     }
   }
 
@@ -103,7 +153,8 @@ class DriverPayoutScreen extends StatelessWidget {
               const SnackBar(content: Text("Sign up completed.")),
             );
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const DriverHomeScreen()),
+              MaterialPageRoute(
+                  builder: (_) => const DriverSignupOrLogingScreen()),
               (route) => false,
             );
           } else if (state is DriverError) {
@@ -118,7 +169,6 @@ class DriverPayoutScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 22.h),
-              //title
               Text(
                 "Add Payout Information",
                 style: appStyle(
@@ -133,14 +183,14 @@ class DriverPayoutScreen extends StatelessWidget {
                     size: 80.r, color: KColor.primary),
               ),
               SizedBox(height: 20.h),
-
               Text(
                 "We partner with Stripe for secure financial services. Tap below to set up your payout account on Stripe's secure website.",
                 textAlign: TextAlign.center,
                 style: appStyle(
-                    color: KColor.placeholder,
-                    fontWeight: FontWeight.w500,
-                    size: 16.sp),
+                  color: KColor.placeholder,
+                  fontWeight: FontWeight.w500,
+                  size: 16.sp,
+                ),
               ),
               SizedBox(height: 40.h),
               BlocBuilder<DriverCubit, DriverState>(
@@ -161,6 +211,60 @@ class DriverPayoutScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Simple WebView that completes when it navigates to returnUrl or refreshUrl
+class _StripeOnboardingWebView extends StatefulWidget {
+  final String startUrl;
+  final String returnUrl;
+  final String refreshUrl;
+
+  const _StripeOnboardingWebView({
+    required this.startUrl,
+    required this.returnUrl,
+    required this.refreshUrl,
+  });
+
+  @override
+  State<_StripeOnboardingWebView> createState() =>
+      _StripeOnboardingWebViewState();
+}
+
+class _StripeOnboardingWebViewState extends State<_StripeOnboardingWebView> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (req) {
+            final url = req.url;
+            if (url.startsWith(widget.returnUrl)) {
+              Navigator.of(context).pop(true); // onboarding done
+              return NavigationDecision.prevent;
+            }
+            if (url.startsWith(widget.refreshUrl)) {
+              Navigator.of(context).pop(false); // user cancelled / refresh
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.startUrl));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Stripe Onboarding")),
+      body: WebViewWidget(controller: _controller),
     );
   }
 }

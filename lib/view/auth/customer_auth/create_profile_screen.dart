@@ -124,15 +124,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Profile Created Successfully!")),
           );
-          print("-----------------------" + _email.text);
-          print("----------------------- ${_auth.currentUser!.phoneNumber}");
-          print("----------------------- ${_auth.currentUser!.uid}");
+
           context.pushRlacement(AddPaymentMethod(
-            customerUid: _auth.currentUser!.uid,
             email: _email.text,
-            fullName:
-                "${_firstNameController.text.trim()} ${_lastNameController.text.trim()}",
-            phoneNumber: _auth.currentUser!.phoneNumber ?? "",
+            phone: _auth.currentUser!.phoneNumber ?? "",
           ));
         } else if (state is CustomerError) {
           ScaffoldMessenger.of(context).showSnackBar(
