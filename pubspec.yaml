@@ -65,6 +65,7 @@ dependencies:
   flutter_rating_bar:
   intl:
   webview_flutter:
+  google_api_headers:
 dev_dependencies:
   flutter_test:
     sdk: flutter

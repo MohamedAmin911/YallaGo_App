@@ -7,7 +7,6 @@ import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_states.dart';
-import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
 import 'package:taxi_app/view/widgets/customer/home/customer_home_widgets/app_drawer.dart';
@@ -31,16 +30,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   double _rating = 5.0;
 
-  void _updateRating(double newRating) {
-    setState(() {
-      _rating = newRating;
-    });
-  }
+  void _updateRating(double newRating) => setState(() => _rating = newRating);
 
   Future<void> _navigateToSearch(BuildContext context, LatLng position) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => DestinationSearchScreen(currentUserPosition: position),
+        builder: (context) => DestinationSearchScreen(
+          currentUserPosition: position,
+        ),
       ),
     );
 
@@ -55,48 +52,51 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => HomeCubit()..loadCurrentUserLocation(),
-      child: BlocListener<AuthCubit, AuthState>(
-        listener: (context, state) {
-          if (state is AuthLoggedOut) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const AuthGate()),
-              (route) => false,
-            );
-          }
-        },
-        child: BlocListener<TripCubit, TripState>(
-          listener: (context, tripState) {
-            if (tripState is TripCreated) {
-              context.read<HomeCubit>().listenToTripUpdates(tripState.tripId);
-            }
-          },
-          child: Scaffold(
-            drawer: const CustomerAppDrawer(),
-            body: Builder(
-              builder: (context) {
-                return BlocBuilder<HomeCubit, HomeState>(
-                  builder: (context, state) {
-                    return Stack(
-                      children: [
-                        buildGoogleMap(context, state),
-                        if (state is HomeLoading)
-                          Center(
-                              child: CircularProgressIndicator(
-                            color: KColor.primary,
-                          )),
-                        if (state is HomeError)
-                          SnackBar(
-                            content: Text(state.message),
-                            backgroundColor: KColor.red,
-                          ),
-                        buildTopUI(context),
-                        _buildBottomPanel(context, state),
-                      ],
-                    );
-                  },
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<AuthCubit, AuthState>(
+            listener: (context, state) {
+              if (state is AuthLoggedOut) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthGate()),
+                  (route) => false,
                 );
-              },
-            ),
+              }
+            },
+          ),
+          BlocListener<TripCubit, TripState>(
+            listener: (context, tripState) {
+              if (tripState is TripCreated) {
+                context.read<HomeCubit>().listenToTripUpdates(tripState.tripId);
+              }
+            },
+          ),
+// Show errors via ScaffoldMessenger, not as a widget in the tree
+          BlocListener<HomeCubit, HomeState>(
+            listener: (context, state) {
+              if (state is HomeError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+              }
+            },
+          ),
+        ],
+        child: Scaffold(
+          drawer: const CustomerAppDrawer(),
+          body: BlocBuilder<HomeCubit, HomeState>(
+            builder: (context, state) {
+              return Stack(
+                children: [
+                  buildGoogleMap(context, state),
+                  if (state is HomeLoading)
+                    const Center(child: CircularProgressIndicator()),
+// Removed: SnackBar widget (was causing layout exception)
+                  buildTopUI(context),
+                  _buildBottomPanel(context, state),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -112,18 +112,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (state is HomeDriverArrived) {
       return buildDriverArrivedPanel(
-          context, state.driver, state.trip.tripId ?? "", state);
+        context,
+        state.driver,
+        state.trip.tripId ?? "",
+        state,
+      );
     }
     if (state is HomeTripInProgress) {
       return buildTripInProgressPanel(context, state);
     }
     if (state is HomeTripCompleted) {
-      return buildTripCompletedPanel(
-        context,
-        state,
-        _rating,
-        _updateRating,
-      );
+      return buildTripCompletedPanel(context, state, _rating, _updateRating);
     }
     if (state is HomeRouteReady) {
       return buildConfirmationPanel(context, state, _navigateToSearch);
@@ -131,7 +130,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (state is HomeMapReady) {
       return buildSearchPanel(context, state, _navigateToSearch);
     }
-
     return const SizedBox.shrink();
   }
 }

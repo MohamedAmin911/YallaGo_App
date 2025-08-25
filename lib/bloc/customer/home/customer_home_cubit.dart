@@ -143,16 +143,31 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> planRoute(LatLng destination, String destinationAddress) async {
-    final startState = state;
-    if (startState is! HomeMapReady) return;
+// Allow planning from both HomeMapReady and HomeRouteReady
+    final curr = state;
+
+    if (_currentUserPosition == null) {
+      emit(HomeError(message: "Current location unknown."));
+      return;
+    }
+
+// Derive pickup position/address from current state
+    final LatLng pickupLatLng = LatLng(
+      _currentUserPosition!.latitude,
+      _currentUserPosition!.longitude,
+    );
+
+    String pickupAddress = '';
+    if (curr is HomeMapReady) {
+      pickupAddress = curr.currentAddress;
+    } else if (curr is HomeRouteReady) {
+      pickupAddress = curr.pickupAddress;
+    }
 
     try {
       emit(HomeLoading());
 
-      final pickupLatLng = LatLng(
-          _currentUserPosition!.latitude, _currentUserPosition!.longitude);
-
-      final pickupAddress = startState.currentAddress;
+// 1) Fetch route
       final routeDetails = await _getRouteFromOSRM(pickupLatLng, destination);
       if (routeDetails == null) {
         throw Exception("Could not find a route.");
@@ -162,26 +177,34 @@ class HomeCubit extends Cubit<HomeState> {
       final distanceInMeters = routeDetails['distance'] as double;
       final durationInSeconds = routeDetails['duration'] as double;
 
+// 2) Pricing / display strings
       final price = _calculatePrice(distanceInMeters, durationInSeconds);
       final distanceKm = (distanceInMeters / 1000).toStringAsFixed(1);
       final durationMinutes = (durationInSeconds / 60).ceil();
 
+// 3) Create a NEW polyline with a UNIQUE id every time
+      final routeId = 'route_${DateTime.now().millisecondsSinceEpoch}';
       final routePolyline = Polyline(
-        polylineId: const PolylineId('route'),
+        polylineId: PolylineId(routeId),
         color: KColor.primary,
         points: polylinePoints,
         width: 4,
+        geodesic: true,
       );
 
+// 4) Create NEW markers set
       final pickupMarker = Marker(
-          markerId: const MarkerId('pickup'),
-          position: pickupLatLng,
-          icon: _pickupIcon!);
+        markerId: const MarkerId('pickup'),
+        position: pickupLatLng,
+        icon: _pickupIcon!,
+      );
       final destMarker = Marker(
-          markerId: const MarkerId('destination'),
-          position: destination,
-          icon: _destinationIcon!);
+        markerId: const MarkerId('destination'),
+        position: destination,
+        icon: _destinationIcon!,
+      );
 
+// 5) Move camera to fit bounds
       _mapController?.animateCamera(
         CameraUpdate.newLatLngBounds(
           _boundsFromLatLngList([pickupLatLng, destination]),
@@ -189,16 +212,21 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       );
 
-      emit(HomeRouteReady(
-        pickupPosition: pickupLatLng,
-        pickupAddress: pickupAddress,
-        destinationAddress: destinationAddress,
-        markers: {pickupMarker, destMarker, ..._driverMarkers},
-        polylines: {routePolyline},
-        distance: "$distanceKm km",
-        duration: "$durationMinutes min",
-        estimatedPrice: "EGP ${price.toStringAsFixed(2)}",
-      ));
+// 6) Emit a NEW state with NEW sets (don’t mutate old sets)
+      emit(
+        HomeRouteReady(
+          pickupPosition: pickupLatLng,
+          pickupAddress: pickupAddress,
+          destinationAddress: destinationAddress,
+          markers: {pickupMarker, destMarker, ..._driverMarkers},
+          polylines: {routePolyline},
+          distance: "$distanceKm km",
+          duration: "$durationMinutes min",
+          estimatedPrice: "EGP ${price.toStringAsFixed(2)}",
+          // If your HomeRouteReady supports a version, uncomment and use it:
+          // routeVersion: (curr is HomeRouteReady) ? curr.routeVersion + 1 : 1,
+        ),
+      );
     } catch (e) {
       emit(HomeError(message: "Failed to plan route: ${e.toString()}"));
     }
