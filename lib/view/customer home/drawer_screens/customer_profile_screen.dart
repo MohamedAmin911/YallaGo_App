@@ -30,7 +30,8 @@ class CustomerProfileScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is! CustomerLoaded) {
             // Show a loading indicator until the customer's data is available
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+                child: CircularProgressIndicator(color: KColor.primary));
           }
           final customer = state.customer;
 
@@ -71,7 +72,7 @@ class CustomerProfileScreen extends StatelessWidget {
               _buildSectionTitle("Saved Places"),
               SizedBox(height: 8.h),
               _buildInfoTile(
-                icon: Icons.home_outlined,
+                icon: Icons.home_rounded,
                 title: "Home",
                 subtitle: customer.homeAddress,
                 onTap: () {
@@ -109,7 +110,8 @@ class CustomerProfileScreen extends StatelessWidget {
                 ? Image.network(
                     customer.profileImageUrl!,
                     width: 300.w,
-                    fit: BoxFit.contain,
+                    height: 300.h,
+                    fit: BoxFit.fitWidth,
                   )
                 : null,
           ),
@@ -122,7 +124,7 @@ class CustomerProfileScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: KColor.primaryText),
         ),
-        SizedBox(height: 10.h),
+        SizedBox(height: 20.h),
         SizedBox(
           width: 130.w,
           height: 40.h,
@@ -131,7 +133,7 @@ class CustomerProfileScreen extends StatelessWidget {
             onPressed: () {
               // TODO: Navigate to an "Edit Profile" screen
             },
-            color: KColor.placeholder,
+            color: KColor.lightGray,
           ),
         ),
       ],
@@ -142,7 +144,7 @@ class CustomerProfileScreen extends StatelessWidget {
     return Text(
       title,
       style: appStyle(
-          size: 18.sp, fontWeight: FontWeight.w600, color: KColor.primaryText),
+          size: 18.sp, fontWeight: FontWeight.w600, color: KColor.placeholder),
     );
   }
 
@@ -154,7 +156,11 @@ class CustomerProfileScreen extends StatelessWidget {
   }) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: KColor.primaryText),
+      leading: Icon(
+        icon,
+        color: KColor.primaryText,
+        size: 30.sp,
+      ),
       title: Text(title,
           style: appStyle(
               size: 16.sp,
@@ -166,11 +172,11 @@ class CustomerProfileScreen extends StatelessWidget {
             size: 14.sp,
             color: KColor.secondaryText,
             fontWeight: FontWeight.w600),
-        maxLines: 1,
+        maxLines: 3,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing:
-          onTap != null ? const Icon(Icons.arrow_forward_ios, size: 16) : null,
+      // trailing:
+      //     onTap != null ? Icon(Icons.arrow_forward_ios, size: 20.sp) : null,
       onTap: onTap,
     );
   }
