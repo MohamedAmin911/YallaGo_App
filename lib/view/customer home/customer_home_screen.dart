@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,6 +9,7 @@ import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_states.dart';
+import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/customer%20home/destination_search_screen.dart';
 import 'package:taxi_app/view/widgets/customer/home/customer_home_widgets/app_drawer.dart';
@@ -90,8 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   buildGoogleMap(context, state),
                   if (state is HomeLoading)
-                    const Center(child: CircularProgressIndicator()),
-// Removed: SnackBar widget (was causing layout exception)
+                    Center(
+                        child:
+                            CircularProgressIndicator(color: KColor.primary)),
                   buildTopUI(context),
                   _buildBottomPanel(context, state),
                 ],

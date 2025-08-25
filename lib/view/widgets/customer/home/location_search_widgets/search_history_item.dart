@@ -65,16 +65,16 @@ class SearchHistoryItem extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
       child: Material(
-        elevation: 0.2,
         borderRadius: BorderRadius.circular(22.r),
         child: ListTile(
-          tileColor: KColor.lightWhite.withOpacity(0.2),
+          tileColor: KColor.bg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22.r),
           ),
           leading: Icon(
-            Icons.history, // change to Icons.place_outlined if you prefer
-            size: 24.sp,
+            Icons
+                .history_toggle_off_rounded, // change to Icons.place_outlined if you prefer
+            size: 30.sp,
             color: KColor.primary,
           ),
           title: Text(

@@ -16,6 +16,7 @@ import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_app_bar.dart';
 import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_history_item.dart';
+import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_input_field.dart';
 import 'package:taxi_app/view/widgets/customer/home/location_search_widgets/search_prediction_item.dart';
 import 'package:uuid/uuid.dart';
 
@@ -320,15 +321,9 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Type destination...',
-              ),
-            ),
+          SearchInputField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
           ),
           Expanded(
             child: BlocBuilder<CustomerCubit, CustomerState>(
@@ -340,33 +335,75 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                   _searchHistory = state.customer.searchHistory ?? [];
                 }
 
-                return ListView.builder(
-                  itemCount:
-                      showHistory ? _searchHistory.length : _predictions.length,
-                  itemBuilder: (context, index) {
-                    if (showHistory) {
-                      final historyItem = _searchHistory[index];
-                      return SearchHistoryItem(
-                        historyItem: historyItem,
-                        onTap: () {
-                          Navigator.of(context).pop({
-                            'address': historyItem['address'],
-                            'location': LatLng(
-                              historyItem['latitude'],
-                              historyItem['longitude'],
+                return _searchHistory.isEmpty && _predictions.isEmpty
+                    ? Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 200.h),
+                            Text(
+                              "No Search History",
+                              style: appStyle(
+                                  size: 18.sp,
+                                  color: KColor.lightGray,
+                                  fontWeight: FontWeight.bold),
                             ),
-                          });
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        separatorBuilder: (context, index) => Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 40.w),
+                          child: Divider(
+                            thickness: 3,
+                            color: KColor.lightGray.withOpacity(0.4),
+                          ),
+                        ),
+                        itemCount: showHistory
+                            ? _searchHistory.length
+                            : _predictions.length,
+                        itemBuilder: (context, index) {
+                          if (showHistory) {
+                            final historyItem = _searchHistory[index];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (index == 0)
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.only(left: 24.w, top: 20.h),
+                                    child: Text(
+                                      "Search History",
+                                      style: appStyle(
+                                        size: 16.sp,
+                                        color: KColor.placeholder,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                SearchHistoryItem(
+                                  historyItem: historyItem,
+                                  onTap: () {
+                                    Navigator.of(context).pop({
+                                      'address': historyItem['title'],
+                                      'location': LatLng(
+                                        historyItem['latitude'],
+                                        historyItem['longitude'],
+                                      ),
+                                    });
+                                  },
+                                ),
+                              ],
+                            );
+                          } else {
+                            final prediction = _predictions[index];
+                            return SearchPredictionItem(
+                              prediction: prediction,
+                              onTap: () => _onPlaceSelected(prediction),
+                            );
+                          }
                         },
                       );
-                    } else {
-                      final prediction = _predictions[index];
-                      return SearchPredictionItem(
-                        prediction: prediction,
-                        onTap: () => _onPlaceSelected(prediction),
-                      );
-                    }
-                  },
-                );
               },
             ),
           ),

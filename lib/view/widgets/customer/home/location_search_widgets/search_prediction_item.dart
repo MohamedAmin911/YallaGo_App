@@ -21,14 +21,13 @@ class SearchPredictionItem extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
       child: Material(
-        elevation: 0.5,
         borderRadius: BorderRadius.circular(22.r),
         child: ListTile(
           titleTextStyle: appStyle(
               size: 16.sp,
               color: KColor.primaryText,
               fontWeight: FontWeight.w500),
-          tileColor: KColor.lightWhite,
+          tileColor: KColor.bg,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(22.r)),
           leading: Image.asset(

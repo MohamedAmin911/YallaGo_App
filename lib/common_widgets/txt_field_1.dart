@@ -76,7 +76,7 @@ class CustomTxtField1 extends StatelessWidget {
           ),
           hintStyle: appStyle(
               size: 15.sp,
-              color: KColor.placeholder,
+              color: KColor.lightGray,
               fontWeight: FontWeight.w600),
           hintText: hintText,
         ),
