@@ -131,7 +131,7 @@ class HomeCubit extends Cubit<HomeState> {
             polylines: {newRoutePolyline},
             distance: "$distanceKm km",
             duration: "$durationMinutes min",
-            estimatedPrice: "EGP ${price.toStringAsFixed(2)}",
+            estimatedPrice: price.toStringAsFixed(2),
           ));
         }
       });
@@ -222,7 +222,7 @@ class HomeCubit extends Cubit<HomeState> {
           polylines: {routePolyline},
           distance: "$distanceKm km",
           duration: "$durationMinutes min",
-          estimatedPrice: "EGP ${price.toStringAsFixed(2)}",
+          estimatedPrice: price.toStringAsFixed(2),
           // If your HomeRouteReady supports a version, uncomment and use it:
           // routeVersion: (curr is HomeRouteReady) ? curr.routeVersion + 1 : 1,
         ),
