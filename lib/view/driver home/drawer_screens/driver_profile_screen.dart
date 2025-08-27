@@ -113,7 +113,8 @@ class DriverProfileScreen extends StatelessWidget {
                     child: Image.network(
                       driver.profileImageUrl!,
                       width: 300.w,
-                      fit: BoxFit.contain,
+                      height: 300.h,
+                      fit: BoxFit.fitWidth,
                     ),
                   ),
                 )
@@ -195,6 +196,7 @@ class DriverProfileScreen extends StatelessWidget {
                   ? Image.network(
                       driver.carImageUrl!,
                       width: 140.w,
+                      height: 140.h,
                       fit: BoxFit.fitWidth,
                     )
                   : Container(

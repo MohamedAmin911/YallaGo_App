@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -31,9 +29,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final HomeCubit _homeCubit; // keep a single instance
   double _rating = 5.0;
 
   void _updateRating(double newRating) => setState(() => _rating = newRating);
+
+  @override
+  void initState() {
+    super.initState();
+    _homeCubit = HomeCubit()..loadCurrentUserLocation();
+  }
+
+  @override
+  void dispose() {
+    _homeCubit.close();
+    super.dispose();
+  }
 
   Future<void> _navigateToSearch(BuildContext context, LatLng position) async {
     final result = await Navigator.of(context).push(
@@ -44,6 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
+    if (!mounted) return; // avoid using context after dispose
+
     if (result != null && result is Map) {
       final destination = result['location'] as LatLng;
       final address = result['address'] as String;
@@ -53,17 +66,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HomeCubit()..loadCurrentUserLocation(),
+    return BlocProvider<HomeCubit>.value(
+      value: _homeCubit,
       child: MultiBlocListener(
         listeners: [
           BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state is AuthLoggedOut) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const AuthGate()),
-                  (route) => false,
-                );
+                context.pushRlacement(const AuthGate());
+// Navigator.of(context).pushAndRemoveUntil(
+// MaterialPageRoute(builder: () => ),
+// (route) => false,
+// );
               }
             },
           ),
@@ -74,7 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
           ),
-// Show errors via ScaffoldMessenger, not as a widget in the tree
           BlocListener<HomeCubit, HomeState>(
             listener: (context, state) {
               if (state is HomeError) {

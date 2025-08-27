@@ -6,6 +6,7 @@ import 'package:taxi_app/bloc/customer/home/customer_home_cubit.dart';
 import 'package:taxi_app/bloc/customer/home/customer_home_states.dart';
 import 'package:taxi_app/bloc/customer/customer_cubit.dart';
 import 'package:taxi_app/bloc/driver/driver_cubit.dart';
+import 'package:taxi_app/bloc/payment/payment_method_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_cubit.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
@@ -91,8 +92,9 @@ Widget buildTripCompletedPanel(
                           final tripCubit = context.read<TripCubit>();
                           final driverCubit = context.read<DriverCubit>();
                           final customerCubit = context.read<CustomerCubit>();
-
+                          final paymentCubit = context.read<PaymentCubit>();
                           tripCubit.processTripPayment(
+                            paymentCubit: paymentCubit,
                             trip: state.trip,
                             driverCubit: driverCubit,
                             customerCubit: customerCubit,

@@ -126,6 +126,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           );
 
           context.pushRlacement(AddPaymentMethod(
+            redirectToPaymentMethods: false,
             email: _email.text,
             phone: _auth.currentUser!.phoneNumber ?? "",
           ));

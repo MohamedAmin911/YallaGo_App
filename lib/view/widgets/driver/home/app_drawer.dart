@@ -56,6 +56,7 @@ class DriverAppDrawer extends StatelessWidget {
                               ? Image.network(
                                   driverImageUrl,
                                   width: 120.w,
+                                  height: 120.h,
                                   fit: BoxFit.fitWidth,
                                 )
                               : null,

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,11 +13,17 @@ import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/common_widgets/txt_field_1.dart';
 import 'package:taxi_app/view/auth/customer_auth/signup_or_login_screen.dart';
+import 'package:taxi_app/view/customer%20home/drawer_screens/payment_methods_screen.dart';
 
 class AddPaymentMethod extends StatefulWidget {
-  const AddPaymentMethod({super.key, required this.email, required this.phone});
+  const AddPaymentMethod(
+      {super.key,
+      required this.email,
+      required this.phone,
+      required this.redirectToPaymentMethods});
   final String email;
   final String phone;
+  final bool redirectToPaymentMethods;
 
   @override
   State<AddPaymentMethod> createState() => _AddPaymentMethodState();
@@ -27,6 +34,7 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
   final TextEditingController _cardholderNameController =
       TextEditingController();
   final _cardFieldController = CardEditController();
+  final _auth = FirebaseAuth.instance;
   @override
   void dispose() {
     _cardholderNameController.dispose();
@@ -79,10 +87,19 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
               const SnackBar(content: Text("Card added successfully!")),
             );
             // Navigate to the home screen after successfully adding a card
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const SignUpOrLoginView()),
-              (route) => false,
-            );
+            widget.redirectToPaymentMethods
+                ? Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (_) => PaymentMethodsScreen(
+                              customerUid: _auth.currentUser!.uid,
+                            )),
+                    (route) => false,
+                  )
+                : Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (_) => const SignUpOrLoginView()),
+                    (route) => false,
+                  );
           } else if (state is PaymentError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class KColor {
   static Color get primary => const Color(0xfffcbd01);
-  static Color get secondary => const Color(0xff3369FF);
+  static Color get secondary => const Color(0xFF5433FF);
 
   static Color get primaryText => const Color(0xff282F39);
   static Color get primaryTextW => const Color(0xffFFFFFF);

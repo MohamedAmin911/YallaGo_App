@@ -53,7 +53,6 @@ class PaymentCubit extends Cubit<PaymentState> {
   }) async {
     emit(PaymentLoading());
     try {
-      // 1) Ensure Stripe customer
       final stripeCustomerId = await _ensureStripeCustomer(
         customerUid: customerUid,
         email: email,
@@ -61,7 +60,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         phone: phone,
       );
 
-      // 2) Create SetupIntent
+// Create SetupIntent
       final r = await http.post(
         Uri.parse('$base/create_setup_intent'),
         headers: {
@@ -70,81 +69,53 @@ class PaymentCubit extends Cubit<PaymentState> {
         },
         body: json.encode({'customerId': stripeCustomerId}),
       );
-      final data = json.decode(r.body);
+      final data = json.decode(r.body) as Map<String, dynamic>;
       final clientSecret = data['setupIntent']['client_secret'] as String;
 
-      // 3) Confirm SetupIntent with the card entered in CardField
-      final billing = BillingDetails(
-        name: fullName,
-        email: email,
-        phone: phone,
-      );
-
-      // Correct call: first arg is the clientSecret (positional), not named
+// Confirm on device
+      final billing =
+          BillingDetails(name: fullName, email: email, phone: phone);
       final setupIntent = await Stripe.instance.confirmSetupIntent(
         paymentIntentClientSecret: clientSecret,
         params: PaymentMethodParams.card(
-          paymentMethodData: PaymentMethodData(
-            billingDetails: billing, // now 'billing' is used
-          ),
+          paymentMethodData: PaymentMethodData(billingDetails: billing),
         ),
       );
 
-      // 4) Get the created payment method (prefer the one returned from setupIntent)
+// Find the saved PM
       String? createdPmId = setupIntent.paymentMethodId;
+      Map<String, dynamic>? pm;
 
-      Map<String, dynamic>? pm; // Stripe PM object (to get brand/last4)
+      final listRes = await http.post(
+        Uri.parse('$base/list_payment_methods'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': KapiKeys.pipedreamApiKey,
+        },
+        body: json.encode({'customerId': stripeCustomerId}),
+      );
+      final listData = json.decode(listRes.body) as Map<String, dynamic>;
+      final pmList = (listData['paymentMethods'] as List?) ?? [];
+
       if (createdPmId.isNotEmpty) {
-        // Fetch the PM details from your backend or list and pick by id
-        final listRes = await http.post(
-          Uri.parse('$base/list_payment_methods'),
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': KapiKeys.pipedreamApiKey,
-          },
-          body: json.encode({'customerId': stripeCustomerId}),
-        );
-        final listData = json.decode(listRes.body);
-        final pmList = (listData['paymentMethods'] as List?) ?? [];
-        pm = pmList
-            .cast<Map<String, dynamic>?>()
-            .firstWhere((e) => e?['id'] == createdPmId, orElse: () => null);
-        // Fallback: if not found by id (rare), pick newest
-        pm ??= (pmList.isNotEmpty)
-            ? (pmList
-                  ..sort((a, b) => ((b['created'] ?? 0) as int)
-                      .compareTo((a['created'] ?? 0) as int)))
-                .first
-            : null;
-        createdPmId = pm?['id'] ?? createdPmId; // keep id
-      } else {
-        // No id on setupIntent (older plugin versions) → list and pick newest
-        final listRes = await http.post(
-          Uri.parse('$base/list_payment_methods'),
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': KapiKeys.pipedreamApiKey,
-          },
-          body: json.encode({'customerId': stripeCustomerId}),
-        );
-        final listData = json.decode(listRes.body);
-        final pmList = (listData['paymentMethods'] as List?) ?? [];
-        if (pmList.isEmpty)
+        pm = pmList.cast<Map<String, dynamic>?>().firstWhere(
+              (e) => e?['id'] == createdPmId,
+              orElse: () => null,
+            );
+      }
+      if (pm == null) {
+        if (pmList.isEmpty) {
           throw Exception('No payment methods found after setup.');
-        pmList.sort((a, b) {
-          final ta = (a['created'] as int?) ?? 0;
-          final tb = (b['created'] as int?) ?? 0;
-          return tb.compareTo(ta);
-        });
+        }
+        pmList.sort((a, b) =>
+            ((b['created'] ?? 0) as int).compareTo((a['created'] ?? 0) as int));
         pm = pmList.first as Map<String, dynamic>;
         createdPmId = pm['id'] as String;
       }
 
-      final brand =
-          ((pm?['card']?['brand'] as String?) ?? 'card').toUpperCase();
-      final last4 = (pm?['card']?['last4'] as String?) ?? '••••';
+      final brand = ((pm['card']?['brand'] as String?) ?? 'card').toUpperCase();
+      final last4 = (pm['card']?['last4'] as String?) ?? '••••';
 
-      // 5) Save to Firestore subcollection
       await _db
           .collection('customers')
           .doc(customerUid)
@@ -161,15 +132,14 @@ class PaymentCubit extends Cubit<PaymentState> {
       emit(PaymentMethodAdded());
     } catch (e) {
       emit(PaymentError(message: 'Stripe save card failed: $e'));
-      print('Stripe save card failed: $e');
     }
   }
 
-  Future<void> stripeCharge({
+  Future<String?> stripeCharge({
     required String customerUid,
-    required int amountCents, // e.g., 500 = $5.00
+    required int amountCents,
     String currency = 'usd',
-    String? paymentMethodId, // if null, fetch default (first)
+    String? paymentMethodId,
   }) async {
     emit(PaymentLoading());
     try {
@@ -179,7 +149,6 @@ class PaymentCubit extends Cubit<PaymentState> {
 
       String pmId = paymentMethodId ?? '';
       if (pmId.isEmpty) {
-        // get first saved pm from Firestore
         final pmSnap = await _db
             .collection('customers')
             .doc(customerUid)
@@ -203,14 +172,101 @@ class PaymentCubit extends Cubit<PaymentState> {
           'currency': currency,
         }),
       );
-      final data = json.decode(r.body);
-      if (data['paymentIntent']?['status'] != 'succeeded') {
+
+      final data = json.decode(r.body) as Map<String, dynamic>;
+      final pi = data['paymentIntent'] as Map<String, dynamic>?;
+      if (pi == null || pi['status'] != 'succeeded') {
         throw Exception('Charge not succeeded');
       }
+      final piId = pi['id'] as String;
 
-      emit(PaymentMethodAdded()); // or new PaymentSuccess state if you add it
+// Optional: emit success; or keep as-is if UI doesn’t react here
+// emit(PaymentSuccess(piId));
+      emit(PaymentMethodAdded());
+      return piId;
     } catch (e) {
       emit(PaymentError(message: 'Stripe charge failed: $e'));
+      return null;
+    }
+  }
+
+  Future<void> detachPaymentMethod({
+    required String customerUid,
+    required String paymentMethodId,
+  }) async {
+    emit(PaymentLoading());
+    try {
+// 1) Call Pipedream to detach from Stripe Customer (keeps Stripe clean)
+      final res = await http.post(
+        Uri.parse('$base/detach_payment_method'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': KapiKeys.pipedreamApiKey,
+        },
+        body: json.encode({'paymentMethodId': paymentMethodId}),
+      );
+      final data = json.decode(res.body) as Map<String, dynamic>;
+      if (data['ok'] == false) {
+        throw Exception(data['error'] ?? 'Detach failed');
+      }
+
+// 2) Delete from Firestore
+      final col = _db
+          .collection('customers')
+          .doc(customerUid)
+          .collection('payment_methods');
+      final docRef = col.doc(paymentMethodId);
+      final doc = await docRef.get();
+      final wasDefault = (doc.data()?['isDefault'] as bool?) ?? false;
+
+      await docRef.delete();
+
+// 3) If it was default, promote another one
+      if (wasDefault) {
+        final others = await col.limit(1).get();
+        if (others.docs.isNotEmpty) {
+          await col.doc(others.docs.first.id).update({'isDefault': true});
+        }
+      }
+
+      emit(PaymentMethodAdded()); // reuse for "list changed"
+    } catch (e) {
+      emit(PaymentError(message: 'Detach failed: $e'));
+    }
+  }
+
+  Future<void> setDefaultPaymentMethod({
+    required String customerUid,
+    required String paymentMethodId,
+  }) async {
+    emit(PaymentLoading());
+    try {
+      final col = _db
+          .collection('customers')
+          .doc(customerUid)
+          .collection('payment_methods');
+      final batch = _db.batch();
+
+      final all = await col.get();
+      for (final d in all.docs) {
+        batch.update(d.reference, {'isDefault': d.id == paymentMethodId});
+      }
+      await batch.commit();
+
+// Optional: set default on Stripe customer too (uncomment if you add the route)
+// final userDoc = await _db.collection('customers').doc(customerUid).get();
+// final customerId = userDoc.data()?['stripeCustomerId'] as String?;
+// if (customerId != null) {
+//   await http.post(
+//     Uri.parse('$base/set_default_payment_method'),
+//     headers: {'Content-Type': 'application/json', 'x-api-key': KapiKeys.pipedreamApiKey},
+//     body: json.encode({'customerId': customerId, 'paymentMethodId': paymentMethodId}),
+//   );
+// }
+
+      emit(PaymentMethodAdded());
+    } catch (e) {
+      emit(PaymentError(message: 'Set default failed: $e'));
     }
   }
 }

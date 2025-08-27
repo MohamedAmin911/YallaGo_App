@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,6 +9,7 @@ import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/view/customer%20home/drawer_screens/customer_profile_screen.dart';
+import 'package:taxi_app/view/customer%20home/drawer_screens/payment_methods_screen.dart';
 import 'package:taxi_app/view/customer%20home/drawer_screens/ride_history.dart';
 
 class CustomerAppDrawer extends StatelessWidget {
@@ -15,6 +17,7 @@ class CustomerAppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _auth = FirebaseAuth.instance;
     return Drawer(
       backgroundColor: KColor.bg,
       shape: RoundedRectangleBorder(
@@ -122,13 +125,20 @@ class CustomerAppDrawer extends StatelessWidget {
               size: 30.sp,
             ),
             title: Text(
-              'Payment',
+              'Payment Methods',
               style: appStyle(
                   size: 15.sp,
                   color: KColor.placeholder,
                   fontWeight: FontWeight.bold),
             ),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => PaymentMethodsScreen(
+                          customerUid: _auth.currentUser!.uid,
+                        )),
+              );
+            },
           ),
           ListTile(
             leading: Icon(

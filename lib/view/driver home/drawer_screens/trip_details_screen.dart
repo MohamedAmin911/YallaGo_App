@@ -126,7 +126,8 @@ class TripDetailsScreen extends StatelessWidget {
               trip.customerImageUrl != null && trip.customerImageUrl!.isNotEmpty
                   ? Image.network(
                       trip.customerImageUrl!,
-                      width: 150.w,
+                      width: 100.w,
+                      height: 100.h,
                       fit: BoxFit.fitWidth,
                     )
                   : Container(
