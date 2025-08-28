@@ -36,18 +36,18 @@ class _CustomerOrDriverScreenState extends State<CustomerOrDriverScreen> {
           Container(
             width: context.width,
             height: context.height,
-            color: Colors.black.withValues(alpha: 0.7),
+            color: Colors.black.withValues(alpha: 0.8),
           ),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 250.h),
+                SizedBox(height: 230.h),
                 Image.asset(
                   KImage.logo4,
                   width: 300.w,
                 ),
-                SizedBox(height: 100.h),
+                const Spacer(),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 50.w),
                   child: Column(
@@ -62,32 +62,37 @@ class _CustomerOrDriverScreenState extends State<CustomerOrDriverScreen> {
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(30.r),
                           elevation: 100,
-                          child: Container(
-                            width: 300.w,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 15.w, vertical: 15.h),
-                            decoration: BoxDecoration(
-                              color: KColor.primary,
-                              borderRadius: BorderRadius.circular(30.r),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  KImage.taxiPin,
-                                  width: 40.w,
-                                  color: KColor.bg,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 300.w,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 15.w, vertical: 15.h),
+                                decoration: BoxDecoration(
+                                  color: KColor.primary,
+                                  borderRadius: BorderRadius.circular(30.r),
                                 ),
-                                SizedBox(height: 10.h),
-                                Text(
-                                  "DRIVER",
-                                  style: appStyle(
-                                      size: 30.sp,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      KImage.taxiPin,
+                                      width: 35.w,
                                       color: KColor.bg,
-                                      fontWeight: FontWeight.w900),
+                                    ),
+                                    SizedBox(width: 10.w),
+                                    Text(
+                                      "DRIVER",
+                                      style: appStyle(
+                                          size: 30.sp,
+                                          color: KColor.bg,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -109,15 +114,15 @@ class _CustomerOrDriverScreenState extends State<CustomerOrDriverScreen> {
                               color: KColor.bg,
                               borderRadius: BorderRadius.circular(30.r),
                             ),
-                            child: Column(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
                                   KImage.userPin,
-                                  width: 40.w,
+                                  width: 35.w,
                                   color: KColor.primary,
                                 ),
-                                SizedBox(height: 10.h),
+                                SizedBox(width: 10.w),
                                 Text(
                                   "CUSTOMER",
                                   style: appStyle(
@@ -132,7 +137,8 @@ class _CustomerOrDriverScreenState extends State<CustomerOrDriverScreen> {
                       ),
                     ],
                   ),
-                )
+                ),
+                SizedBox(height: 50.h),
               ],
             ),
           )

@@ -18,7 +18,7 @@ Widget buildLocationField({
     readOnly: true,
     onTap: onTap,
     decoration: InputDecoration(
-      fillColor: KColor.lightGray.withOpacity(0.3),
+      fillColor: KColor.bg,
       filled: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(22.r),

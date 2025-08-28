@@ -26,7 +26,13 @@ Widget buildSearchingPanel(BuildContext context, HomeSearchingForDriver state) {
                     color: KColor.primaryText,
                     fontWeight: FontWeight.bold,
                     size: 18.sp)),
-            const SizedBox(height: 16),
+            SizedBox(height: 20.h),
+            LinearProgressIndicator(
+              minHeight: 5.h,
+              color: KColor.primary,
+              borderRadius: BorderRadius.circular(30.r),
+            ),
+            SizedBox(height: 40.h),
             RoundButton(
                 title: "Cancel Ride",
                 onPressed: () {

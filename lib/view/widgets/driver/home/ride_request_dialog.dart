@@ -11,8 +11,9 @@ import 'package:taxi_app/view/widgets/driver/home/location_field.dart';
 
 Widget newRideFields(String text, String fieldName, Color color) {
   return Container(
+    padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 3.h),
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(30.r),
+      borderRadius: BorderRadius.circular(20.r),
       border: Border.all(color: color, width: 2.w),
     ),
     child: Row(
@@ -23,7 +24,7 @@ Widget newRideFields(String text, String fieldName, Color color) {
             padding: EdgeInsets.symmetric(vertical: 10.h),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(30.r),
+              borderRadius: BorderRadius.circular(15.r),
             ),
             child: Center(
               child: Text(
@@ -59,9 +60,11 @@ void showRideRequestDialog(BuildContext context, TripModel trip) {
               newRideFields(trip.pickupAddress, "From", KColor.primary),
               SizedBox(height: 8.h),
               newRideFields(trip.destinationAddress, "To", KColor.primary),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               newRideFields("${trip.estimatedFare.toStringAsFixed(2)} EGP",
                   "Fare", Colors.green),
+              SizedBox(height: 20.h),
+              const Divider(),
             ],
           ),
         ),

@@ -1,4 +1,1 @@
-  <resources>
-      <!-- Define a custom color -->
-      <color name="splash_background">#fcbd01</color>
-  </resources>
+<?xml version="1.0" encoding="utf-8"?><resources> <color name="splash_bg">#FFFFFFFF</color> <!-- match your app background --> </resources>

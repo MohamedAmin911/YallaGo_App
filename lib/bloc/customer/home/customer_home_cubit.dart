@@ -147,7 +147,7 @@ class HomeCubit extends Cubit<HomeState> {
     final curr = state;
 
     if (_currentUserPosition == null) {
-      emit(HomeError(message: "Current location unknown."));
+      emit(const HomeError(message: "Current location unknown."));
       return;
     }
 
@@ -188,7 +188,7 @@ class HomeCubit extends Cubit<HomeState> {
         polylineId: PolylineId(routeId),
         color: KColor.primary,
         points: polylinePoints,
-        width: 4,
+        width: 3,
         geodesic: true,
       );
 
@@ -386,11 +386,11 @@ class HomeCubit extends Cubit<HomeState> {
     _nearbyDriversSubscription?.cancel();
     _nearbyDriversSubscription = _db
         .collection('drivers')
-        .where('isOnline', isEqualTo: true) // Only get drivers who are online
+        .where('isOnline', isEqualTo: true)
         .snapshots()
         .listen((querySnapshot) {
       _driverMarkers.clear();
-      const double radiusInMeters = 5000; // 5km radius
+      const double radiusInMeters = 5000;
 
       for (var doc in querySnapshot.docs) {
         final driver = DriverModel.fromMap(doc.data());
@@ -400,7 +400,6 @@ class HomeCubit extends Cubit<HomeState> {
             driver.currentLocation!.longitude,
           );
 
-          // Calculate the distance
           final distance = Geolocator.distanceBetween(
             customerPosition.latitude,
             customerPosition.longitude,
@@ -408,7 +407,6 @@ class HomeCubit extends Cubit<HomeState> {
             driverPosition.longitude,
           );
 
-          // Only add the marker if the driver is within the radius
           if (distance <= radiusInMeters) {
             _driverMarkers.add(
               Marker(
@@ -500,6 +498,8 @@ class HomeCubit extends Cubit<HomeState> {
       currentPosition: currentState.pickupPosition,
       markers: {customerMarker},
     ));
+    _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(currentState.pickupPosition, 15.5));
     _tripSubscription?.cancel();
     _assignedDriverSubscription?.cancel();
 

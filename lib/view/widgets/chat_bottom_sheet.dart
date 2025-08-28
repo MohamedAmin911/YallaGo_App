@@ -83,19 +83,34 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
                           child: Text("Error: User not found."));
                     }
 
-                    return ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                      reverse: true,
-                      shrinkWrap: true,
-                      itemCount: state.messages.length,
-                      itemBuilder: (context, index) {
-                        final message = state.messages[index];
-                        final isMyMessage = message.senderUid == currentUserId;
-                        return _buildMessageBubble(message, isMyMessage);
-                      },
-                    );
+                    return state.messages.isEmpty
+                        ? SizedBox.fromSize(
+                            size: Size(400.w, 100.h),
+                            child: Center(
+                                child: Text(
+                              "No messages yet",
+                              style: appStyle(
+                                  size: 15.sp,
+                                  color: KColor.lightGray,
+                                  fontWeight: FontWeight.bold),
+                            )),
+                          )
+                        : ListView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 10.w),
+                            reverse: true,
+                            shrinkWrap: true,
+                            itemCount: state.messages.length,
+                            itemBuilder: (context, index) {
+                              final message = state.messages[index];
+                              final isMyMessage =
+                                  message.senderUid == currentUserId;
+                              return _buildMessageBubble(message, isMyMessage);
+                            },
+                          );
                   }
-                  return const SizedBox.shrink();
+                  return const SizedBox.shrink(
+                    child: Center(child: Text("No messages")),
+                  );
                 },
               ),
             ),
@@ -155,7 +170,14 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
         decoration: BoxDecoration(
           color:
               isMyMessage ? KColor.primary.withOpacity(0.5) : KColor.lightGray,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.r),
+            topRight: Radius.circular(20.r),
+            bottomLeft:
+                isMyMessage ? Radius.circular(20.r) : Radius.circular(0.r),
+            bottomRight:
+                isMyMessage ? Radius.circular(0.r) : Radius.circular(20.r),
+          ),
         ),
         child: Text(
           message.text,
