@@ -6,7 +6,7 @@ class KapiKeys {
   static const String stripeSecretKey =
       "sk_test_51REqaJED4hIlcoyn7Tc77t9IfcIfXphsc7vNgvg3ifzHGQ2XI9tRbD7viMuGtvhT5fn9thgfvJQyS95dJOk7f8qh000Fwep7AC";
   static const String googeleMapsApiKey =
-      "AIzaSyCcucOYna4joAmhuAUPvgQoBzHrTz_cQY4";
+      "AIzaSyAhP1Pe39peEt8SzM_Tpd1SzK_snRrCBrI";
   static const String payMobApiKey =
       "ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklrMWxjbU5vWVc1MElpd2ljSEp2Wm1sc1pWOXdheUk2TVRBek9ESXpOeXdpYm1GdFpTSTZJbWx1YVhScFlXd2lmUS5oNEt5b01xOWtjWWoxVFBXb08zdkdUMDI2LUlaOUxOSENLS0ZubnZvUlZvN253aXpSMXBHMjB5SWJoZFV4YVJ0T1Fjcld4ZmJ0QTk4WEpRemVWX2xRUQ==";
   static const String payMobIntegrationId = "5057043";

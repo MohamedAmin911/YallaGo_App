@@ -8,12 +8,16 @@ enum RoundButtonType { primary, secondary, red, boarded }
 class RoundButton extends StatelessWidget {
   final String title;
   final RoundButtonType type;
+  final double? size;
+  final FontWeight? fontWeight;
   final VoidCallback onPressed;
   final Color color;
   const RoundButton(
       {super.key,
       required this.title,
       this.type = RoundButtonType.primary,
+      this.size,
+      this.fontWeight,
       required this.onPressed,
       required this.color});
 
@@ -36,8 +40,8 @@ class RoundButton extends StatelessWidget {
           color: type == RoundButtonType.boarded
               ? KColor.secondaryText
               : KColor.primaryTextW,
-          size: 16.r,
-          fontWeight: FontWeight.w600,
+          size: size ?? 16.r,
+          fontWeight: fontWeight ?? FontWeight.w600,
         ),
       ),
     );

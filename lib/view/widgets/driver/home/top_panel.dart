@@ -62,7 +62,7 @@ Widget buildTopPanel(BuildContext context, DriverHomeState state) {
                         child: Text(
                           "EGP",
                           style: appStyle(
-                              size: 16.sp,
+                              size: 13.sp,
                               color: KColor.bg,
                               fontWeight: FontWeight.bold),
                         ),
@@ -70,7 +70,7 @@ Widget buildTopPanel(BuildContext context, DriverHomeState state) {
                       Text(
                         ' ${balance.toStringAsFixed(2)} ',
                         style: appStyle(
-                            size: 16.sp,
+                            size: 13.sp,
                             color: KColor.primaryText,
                             fontWeight: FontWeight.bold),
                       ),
@@ -93,8 +93,10 @@ Widget buildTopPanel(BuildContext context, DriverHomeState state) {
               child: Row(
                 children: [
                   SizedBox(
-                    width: 130.w,
+                    width: 110.w,
                     child: RoundButton(
+                      size: 12.sp,
+                      fontWeight: FontWeight.w900,
                       title: isOnline ? "GO OFFLINE" : "GO ONLINE",
                       onPressed: () {
                         if (isOnline) {
