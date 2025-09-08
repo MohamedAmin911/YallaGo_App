@@ -137,9 +137,21 @@ flutter:
 #     icon_background_color_dark: "#fcbd01"
 
 
-# Add this entire section at the end of your pubspec.yaml
-flutter_launcher_icons:
-  android: "launcher_icon" # The name of the icon file for Android
-  ios: true
-  image_path: "assets/images/ll2.png" # The path to your main logo file
-  min_sdk_android: 23 # Your project's min SDK version
+flutter_native_splash:
+      color: "#fcbd01"
+      color_dark: "#fcbd01"
+      # OR
+      # background_image: "assets/splash_background.png" # Background image
+      image: assets/images/logo5.png # Image displayed in the center
+      # branding_image: "assets/branding_logo.png" # Optional branding image
+      android: true
+      ios: true
+      web: false # Set to true if you want a splash screen for web
+
+      # Android 12 specific configuration (if needed)
+      android_12:
+        image: assets/images/logo5.png
+        color: "#fcbd01"
+        color_dark: "#fcbd01"
+        # dark_mode_image: "assets/android12_dark_logo.png"
+        # dark_mode_color: "#1A1A1A"

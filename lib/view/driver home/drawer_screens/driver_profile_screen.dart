@@ -12,6 +12,10 @@ import 'package:taxi_app/view/driver%20home/drawer_screens/ride_history_screen.d
 class DriverProfileScreen extends StatelessWidget {
   const DriverProfileScreen({super.key});
 
+  // Adjust these for your app
+  static const String payoutCurrency = 'egp'; // or 'usd'
+  static const int minThresholdCents = 5000; // e.g., 50.00 EGP/USD
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,10 +31,22 @@ class DriverProfileScreen extends StatelessWidget {
         ),
       ),
       backgroundColor: KColor.bg,
-      body: BlocBuilder<DriverCubit, DriverState>(
+      body: BlocConsumer<DriverCubit, DriverState>(
+        listener: (context, state) {
+          if (state is DriverError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
+            );
+          } else if (state is DriverLoaded) {
+            // optional success message after a payout request
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   const SnackBar(content: Text('Updated.')),
+            // );
+          }
+        },
         builder: (context, state) {
           if (state is! DriverLoaded) {
-            // Show a loading indicator until the driver's data is available
             return Center(
                 child: CircularProgressIndicator(color: KColor.primary));
           }
@@ -40,7 +56,6 @@ class DriverProfileScreen extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 24.w),
             children: [
               SizedBox(height: 22.h),
-              //title
               Text(
                 "My Profile",
                 style: appStyle(
@@ -50,20 +65,18 @@ class DriverProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 30.h),
-              // --- Profile Header ---
               _buildProfileHeader(driver),
               SizedBox(height: 30.h),
-              // --- Key Stats ---
               _buildStatsRow(driver),
               const Divider(height: 40),
-              // --- Vehicle Information ---
               _buildSectionTitle("My Vehicle"),
               SizedBox(height: 16.h),
               _buildVehicleInfoCard(driver),
               const Divider(height: 40),
-              // --- Action Buttons ---
               _buildSectionTitle("Account"),
               SizedBox(height: 8.h),
+
+              // Ride history
               _buildActionTile(
                 icon: Icons.history,
                 title: "Ride History",
@@ -74,13 +87,23 @@ class DriverProfileScreen extends StatelessWidget {
                   );
                 },
               ),
+
+              // Request Payout (NEW)
+              _buildActionTile(
+                icon: Icons.payments_outlined,
+                title: "Request Payout",
+                onTap: () => _openPayoutSheet(context, driver),
+              ),
+
+              // Payouts list/history (you can implement later)
               _buildActionTile(
                 icon: Icons.account_balance_wallet,
                 title: "Payouts",
                 onTap: () {
-                  // TODO: Navigate to Payouts Screen
+                  // TODO: Navigate to Payouts history screen
                 },
               ),
+
               _buildActionTile(
                 icon: Icons.support_agent,
                 title: "Support",
@@ -98,7 +121,6 @@ class DriverProfileScreen extends StatelessWidget {
   Widget _buildProfileHeader(DriverModel driver) {
     return Column(
       children: [
-        // --- Profile Picture ---
         Container(
           decoration: BoxDecoration(
             color: KColor.primary,
@@ -120,9 +142,7 @@ class DriverProfileScreen extends StatelessWidget {
                 )
               : null,
         ),
-
         SizedBox(height: 20.h),
-
         RatingBarIndicator(
           rating: driver.rating,
           itemBuilder: (context, index) => const Icon(
@@ -144,8 +164,11 @@ class DriverProfileScreen extends StatelessWidget {
       children: [
         _buildStatItem("Balance", "EGP ${driver.balance.toStringAsFixed(2)}"),
         _buildStatItem("Total Rides", driver.totalRides.toString()),
-        _buildStatItem("Status", driver.isOnline ? "Online" : "Offline",
-            valueColor: driver.isOnline ? Colors.green : Colors.red),
+        _buildStatItem(
+          "Status",
+          driver.isOnline ? "Online" : "Offline",
+          valueColor: driver.isOnline ? Colors.green : Colors.red,
+        ),
       ],
     );
   }
@@ -156,17 +179,19 @@ class DriverProfileScreen extends StatelessWidget {
         Text(
           label,
           style: appStyle(
-              size: 14.sp,
-              color: KColor.secondaryText,
-              fontWeight: FontWeight.bold),
+            size: 14.sp,
+            color: KColor.secondaryText,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         SizedBox(height: 4.h),
         Text(
           value,
           style: appStyle(
-              size: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: valueColor ?? KColor.primaryText),
+            size: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: valueColor ?? KColor.primaryText,
+          ),
         ),
       ],
     );
@@ -176,7 +201,10 @@ class DriverProfileScreen extends StatelessWidget {
     return Text(
       title,
       style: appStyle(
-          size: 18.sp, fontWeight: FontWeight.w800, color: KColor.placeholder),
+        size: 18.sp,
+        fontWeight: FontWeight.w800,
+        color: KColor.placeholder,
+      ),
     );
   }
 
@@ -189,7 +217,6 @@ class DriverProfileScreen extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Car Image
             ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
               child: driver.carImageUrl != null
@@ -207,7 +234,6 @@ class DriverProfileScreen extends StatelessWidget {
                     ),
             ),
             SizedBox(width: 16.w),
-            // Car Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,25 +242,29 @@ class DriverProfileScreen extends StatelessWidget {
                     driver.carModel,
                     maxLines: 2,
                     style: appStyle(
-                        size: 20.sp,
-                        fontWeight: FontWeight.w900,
-                        color: KColor.primaryText),
+                      size: 20.sp,
+                      fontWeight: FontWeight.w900,
+                      color: KColor.primaryText,
+                    ),
                   ),
                   SizedBox(height: 10.h),
                   Text(
                     driver.licensePlate,
                     style: appStyle(
-                        size: 20.sp,
-                        color: KColor.secondaryText,
-                        fontWeight: FontWeight.bold),
+                      size: 20.sp,
+                      color: KColor.secondaryText,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(height: 10.h),
                   Container(
                     width: 50.w,
                     height: 10.h,
                     decoration: BoxDecoration(
-                      color: Color(int.parse(
-                          "0xff${driver.carColor.replaceFirst('#', '')}")),
+                      color: Color(
+                        int.parse(
+                            "0xff${driver.carColor.replaceFirst('#', '')}"),
+                      ),
                       borderRadius: BorderRadius.circular(22.r),
                     ),
                   )
@@ -254,13 +284,177 @@ class DriverProfileScreen extends StatelessWidget {
   }) {
     return ListTile(
       leading: Icon(icon, color: KColor.primary),
-      title: Text(title,
-          style: appStyle(
-              size: 16.sp,
-              color: KColor.primaryText,
-              fontWeight: FontWeight.bold)),
+      title: Text(
+        title,
+        style: appStyle(
+            size: 16.sp,
+            color: KColor.primaryText,
+            fontWeight: FontWeight.bold),
+      ),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
+    );
+  }
+
+  // NEW: Request Payout UI
+  void _openPayoutSheet(BuildContext context, DriverModel driver) {
+    if ((driver.stripeConnectAccountId ?? '').isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please connect your Stripe payout account first.')),
+      );
+      return;
+    }
+
+    final amountCtrl = TextEditingController(
+      text: driver.balance.toStringAsFixed(2), // default to full balance
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16.r))),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16.w,
+            right: 16.w,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16.h,
+            top: 16.h,
+          ),
+          child: BlocBuilder<DriverCubit, DriverState>(
+            builder: (context, state) {
+              final loading = state is DriverLoading;
+              final minThreshold = (minThresholdCents / 100.0);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Request Payout',
+                      style: appStyle(
+                          size: 18.sp,
+                          fontWeight: FontWeight.w800,
+                          color: KColor.primaryText)),
+                  SizedBox(height: 12.h),
+                  Text(
+                    'Available balance: ${payoutCurrency.toUpperCase()} ${driver.balance.toStringAsFixed(2)}\n'
+                    'Minimum payout: ${payoutCurrency.toUpperCase()} ${minThreshold.toStringAsFixed(2)}',
+                    style: appStyle(
+                        size: 14.sp,
+                        color: KColor.secondaryText,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  SizedBox(height: 12.h),
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Amount (${payoutCurrency.toUpperCase()})',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r)),
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: loading ? null : () => Navigator.pop(ctx),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: loading
+                              ? null
+                              : () async {
+                                  final txt = amountCtrl.text.trim();
+                                  final amt = double.tryParse(txt) ?? 0.0;
+                                  final amtCents = (amt * 100).round();
+                                  final balanceCents =
+                                      (driver.balance * 100).round();
+
+                                  if (amt <= 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Enter a valid amount.')),
+                                    );
+                                    return;
+                                  }
+                                  if (amtCents < minThresholdCents) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Minimum payout is ${payoutCurrency.toUpperCase()} ${minThreshold.toStringAsFixed(2)}'),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  if (amtCents > balanceCents) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Amount exceeds available balance.')),
+                                    );
+                                    return;
+                                  }
+
+                                  // Call cubit
+                                  await context
+                                      .read<DriverCubit>()
+                                      .requestPayout(
+                                        driverUid: driver
+                                            .uid, // if your model uses id, replace with driver.id
+                                        amountCents: amtCents,
+                                        currency: payoutCurrency,
+                                        minThresholdCents: minThresholdCents,
+                                      );
+
+                                  if (context.mounted) {
+                                    Navigator.pop(ctx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Payout request submitted.')),
+                                    );
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: KColor.primary),
+                          child: loading
+                              ? SizedBox(
+                                  height: 18.h,
+                                  width: 18.h,
+                                  child: const CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Text('Request'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

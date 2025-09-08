@@ -11,9 +11,9 @@ import 'package:taxi_app/bloc/customer/customer_cubit.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
+import 'package:taxi_app/view/auth/auth_gate.dart';
 import 'package:taxi_app/view/auth/customer_auth/enter_mobile_number_screen.dart';
 import 'package:taxi_app/view/auth/driver_auth/driver_create_profile_screen.dart';
-import 'package:taxi_app/view/driver%20home/driver_home_screen.dart';
 
 class DriverOtpVerificationView extends StatefulWidget {
   const DriverOtpVerificationView({super.key, required this.phoneNumber});
@@ -102,7 +102,9 @@ class _DriverOtpVerificationViewState extends State<DriverOtpVerificationView>
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Welcome back!")),
               );
-              context.pushRlacement(const DriverHomeScreen());
+
+              context.pushRlacement(const AuthGate());
+              // context.pushRlacement(const DriverHomeScreen());
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Success!")),

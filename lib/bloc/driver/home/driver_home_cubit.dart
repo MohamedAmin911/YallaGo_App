@@ -155,7 +155,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
           );
 
           // Keep zoom; just pan to follow
-          _mapController?.animateCamera(CameraUpdate.newLatLng(newLatLng));
+          _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
 
           emit(DriverOnline(
             currentPosition: newLatLng,

@@ -130,9 +130,7 @@ class DriverCubit extends Cubit<DriverState> {
         throw Exception('No account id in response: $data');
       }
 
-      // Do NOT update Firestore here (doc may not exist yet).
-      // Return the accountId; call createDriverProfile later with this id.
-      emit(DriverInitial()); // clear loading state for UI
+      emit(DriverInitial());
       return accountId;
     } catch (e) {
       emit(DriverError(message: 'Failed to create Connect account: $e'));
@@ -157,6 +155,79 @@ class DriverCubit extends Cubit<DriverState> {
     } catch (e) {
       emit(DriverError(message: 'Failed to create onboarding link: $e'));
       return null;
+    }
+  }
+
+  Future<void> requestPayout({
+    required String driverUid,
+    required int amountCents, // e.g., 100.00 EGP => 10000
+    String currency = 'usd', // or 'egp' for your tests
+    int minThresholdCents = 5000, // e.g., $50
+  }) async {
+    try {
+      if (amountCents <= 0) {
+        emit(DriverError(message: 'Amount must be greater than 0.'));
+        return;
+      }
+
+      emit(DriverLoading());
+
+      final driverRef = _db.collection('drivers').doc(driverUid);
+
+      await _db.runTransaction((tx) async {
+        final snap = await tx.get(driverRef);
+        if (!snap.exists) {
+          throw Exception('Driver not found');
+        }
+
+        final data = snap.data() as Map<String, dynamic>;
+        final stripeAccountId =
+            (data['stripeConnectAccountId'] as String?) ?? '';
+        final fullName = (data['fullName'] as String?) ?? 'Driver';
+
+        final balanceDouble = ((data['balance'] ?? 0.0) as num).toDouble();
+        final balanceCents = (balanceDouble * 100).round();
+
+        if (stripeAccountId.isEmpty) {
+          throw Exception('Stripe account not connected');
+        }
+        if (amountCents < minThresholdCents) {
+          throw Exception('Below minimum payout amount');
+        }
+        if (amountCents > balanceCents) {
+          throw Exception('Insufficient balance');
+        }
+
+        // Deduct immediately to avoid double spending
+        final newBalanceCents = balanceCents - amountCents;
+        final newBalance = newBalanceCents / 100.0;
+
+        tx.update(driverRef, {'balance': newBalance});
+
+        // Create payout request (root-level collection)
+        final payoutRef = _db.collection('payouts').doc();
+        tx.set(payoutRef, {
+          'driverUid': driverUid,
+          'driverName': fullName,
+          'driverStripeAccountId': stripeAccountId,
+          'amountCents': amountCents,
+          'currency': currency,
+          'status': 'pending',
+          'createdAt': FieldValue.serverTimestamp(),
+          'balanceSnapshotCents': balanceCents,
+        });
+      });
+
+      // Reload and emit updated driver
+      final updatedSnap = await _db.collection('drivers').doc(driverUid).get();
+      final updatedData = updatedSnap.data();
+      if (updatedData == null) {
+        emit(DriverError(message: 'Driver not found after payout request.'));
+        return;
+      }
+      emit(DriverLoaded(driver: DriverModel.fromMap(updatedData)));
+    } catch (e) {
+      emit(DriverError(message: 'Payout request failed: $e'));
     }
   }
 
