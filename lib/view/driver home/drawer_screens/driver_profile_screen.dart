@@ -7,6 +7,7 @@ import 'package:taxi_app/bloc/driver/driver_states.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/data_models/driver_model.dart';
+import 'package:taxi_app/view/driver%20home/drawer_screens/payout_history_screen.dart';
 import 'package:taxi_app/view/driver%20home/drawer_screens/ride_history_screen.dart';
 
 class DriverProfileScreen extends StatelessWidget {
@@ -66,6 +67,14 @@ class DriverProfileScreen extends StatelessWidget {
               ),
               SizedBox(height: 30.h),
               _buildProfileHeader(driver),
+              SizedBox(height: 10.h),
+              Text(
+                driver.email ?? "",
+                style: appStyle(
+                    size: 15.sp,
+                    color: KColor.lightGray,
+                    fontWeight: FontWeight.bold),
+              ),
               SizedBox(height: 30.h),
               _buildStatsRow(driver),
               const Divider(height: 40),
@@ -98,9 +107,12 @@ class DriverProfileScreen extends StatelessWidget {
               // Payouts list/history (you can implement later)
               _buildActionTile(
                 icon: Icons.account_balance_wallet,
-                title: "Payouts",
+                title: "Payout History",
                 onTap: () {
-                  // TODO: Navigate to Payouts history screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const PayoutHistoryScreen()),
+                  );
                 },
               ),
 

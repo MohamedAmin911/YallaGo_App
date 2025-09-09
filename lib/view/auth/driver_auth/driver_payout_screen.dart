@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
+import 'package:taxi_app/data_models/push_token_service.dart';
 import 'package:taxi_app/view/auth/driver_auth/driver_signup_or_loging_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -134,6 +136,7 @@ class DriverPayoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _auth = FirebaseAuth.instance;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -147,11 +150,14 @@ class DriverPayoutScreen extends StatelessWidget {
         ),
       ),
       body: BlocListener<DriverCubit, DriverState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is DriverProfileCreated) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Sign up completed.")),
             );
+
+            await PushTokenService().register(_auth.currentUser!.uid);
+
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                   builder: (_) => const DriverSignupOrLogingScreen()),

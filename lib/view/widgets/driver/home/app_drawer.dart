@@ -8,6 +8,7 @@ import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/view/driver%20home/drawer_screens/driver_profile_screen.dart';
+import 'package:taxi_app/view/driver%20home/drawer_screens/payout_history_screen.dart';
 import 'package:taxi_app/view/driver%20home/drawer_screens/ride_history_screen.dart';
 
 class DriverAppDrawer extends StatelessWidget {
@@ -121,13 +122,18 @@ class DriverAppDrawer extends StatelessWidget {
               size: 30.sp,
             ),
             title: Text(
-              'Payment',
+              'Payout History',
               style: appStyle(
                   size: 15.sp,
                   color: KColor.placeholder,
                   fontWeight: FontWeight.bold),
             ),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PayoutHistoryScreen()),
+              );
+            },
           ),
           ListTile(
             leading: Icon(

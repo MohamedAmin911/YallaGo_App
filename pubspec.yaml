@@ -66,6 +66,7 @@ dependencies:
   intl:
   webview_flutter:
   google_api_headers:
+  firebase_messaging:
 dev_dependencies:
   flutter_test:
     sdk: flutter
