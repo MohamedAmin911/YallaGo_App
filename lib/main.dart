@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:taxi_app/UI/auth/screens/splash_view.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/chat/chat_cubit.dart';
 import 'package:taxi_app/bloc/customer/customer_cubit.dart';
@@ -14,7 +15,6 @@ import 'package:taxi_app/common/api_keys.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:taxi_app/services/notification_service.dart';
-import 'package:taxi_app/view/auth/splash_view.dart';
 import 'firebase_options.dart';
 
 void main() async {

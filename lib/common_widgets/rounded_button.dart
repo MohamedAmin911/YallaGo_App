@@ -10,7 +10,7 @@ class RoundButton extends StatelessWidget {
   final RoundButtonType type;
   final double? size;
   final FontWeight? fontWeight;
-  final VoidCallback onPressed;
+  final void Function()? onPressed;
   final Color color;
   const RoundButton(
       {super.key,
