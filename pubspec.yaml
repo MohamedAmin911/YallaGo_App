@@ -138,21 +138,3 @@ flutter:
 #     icon_background_color_dark: "#fcbd01"
 
 
-flutter_native_splash:
-      color: "#fcbd01"
-      color_dark: "#fcbd01"
-      # OR
-      # background_image: "assets/splash_background.png" # Background image
-      image: assets/images/logo5.png # Image displayed in the center
-      # branding_image: "assets/branding_logo.png" # Optional branding image
-      android: true
-      ios: true
-      web: false # Set to true if you want a splash screen for web
-
-      # Android 12 specific configuration (if needed)
-      android_12:
-        image: assets/images/logo5.png
-        color: "#fcbd01"
-        color_dark: "#fcbd01"
-        # dark_mode_image: "assets/android12_dark_logo.png"
-        # dark_mode_color: "#1A1A1A"

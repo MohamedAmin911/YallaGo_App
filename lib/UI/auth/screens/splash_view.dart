@@ -3,7 +3,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:taxi_app/common/extensions.dart';
-import 'package:taxi_app/common/images.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
 import 'package:taxi_app/UI/auth/screens/auth_gate.dart';
@@ -136,9 +135,9 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(KImage.logo3, width: 300.w),
+            // Image.asset(KImage.logo3, width: 300.w),
             SizedBox(height: 30.h),
-            CircularProgressIndicator(color: KColor.primary),
+            CircularProgressIndicator(color: KColor.bg),
           ],
         ),
       ),
