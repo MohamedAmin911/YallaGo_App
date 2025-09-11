@@ -25,6 +25,7 @@ Widget buildDriverEnRoutePanel(BuildContext context, HomeDriverEnRoute state) {
         child: Column(
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(30.r),
@@ -41,11 +42,15 @@ Widget buildDriverEnRoutePanel(BuildContext context, HomeDriverEnRoute state) {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(driver.fullName,
-                        style: appStyle(
-                            color: KColor.primaryText,
-                            fontWeight: FontWeight.bold,
-                            size: 30.sp)),
+                    SizedBox(
+                      width: 160.w,
+                      child: Text(driver.fullName,
+                          maxLines: 2,
+                          style: appStyle(
+                              color: KColor.primaryText,
+                              fontWeight: FontWeight.bold,
+                              size: 30.sp)),
+                    ),
                     SizedBox(height: 10.h),
                     Row(
                       children: [
@@ -57,14 +62,16 @@ Widget buildDriverEnRoutePanel(BuildContext context, HomeDriverEnRoute state) {
                         SizedBox(width: 3.w),
                         Icon(
                           Icons.circle,
-                          size: 20.sp,
+                          size: 30.sp,
                           color: Color(int.parse(
                               "0xff${driver.carColor.replaceFirst(RegExp(r'#'), "")}")),
                         ),
-                        SizedBox(width: 3.w),
+                        SizedBox(width: 5.w),
                         SizedBox(
-                          width: 90.w,
+                          width: 110.w,
                           child: Text(driver.carModel,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: appStyle(
                                   color: KColor.primaryText,
                                   fontWeight: FontWeight.bold,
@@ -141,7 +148,7 @@ Widget buildDriverEnRoutePanel(BuildContext context, HomeDriverEnRoute state) {
                     fontWeight: FontWeight.bold,
                     size: 15.sp)),
             SizedBox(height: 5.h),
-            Text("Arriving in ${state.arrivalEta} minutes",
+            Text("Arriving in ${state.arrivalEta}",
                 style: appStyle(
                     color: KColor.placeholder,
                     fontWeight: FontWeight.w600,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
@@ -32,6 +33,9 @@ class HomeCubit extends Cubit<HomeState> {
   BitmapDescriptor? _driverIcon;
   BitmapDescriptor? _carIcon;
   final NotificationService _notificationService = NotificationService();
+
+  // Keep last seen position per driver to compute bearing if heading is missing.
+  final Map<String, LatLng> _lastDriverPos = {};
 
   void setMapController(GoogleMapController controller) {
     _mapController = controller;
@@ -143,7 +147,6 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> planRoute(LatLng destination, String destinationAddress) async {
-// Allow planning from both HomeMapReady and HomeRouteReady
     final curr = state;
 
     if (_currentUserPosition == null) {
@@ -151,7 +154,6 @@ class HomeCubit extends Cubit<HomeState> {
       return;
     }
 
-// Derive pickup position/address from current state
     final LatLng pickupLatLng = LatLng(
       _currentUserPosition!.latitude,
       _currentUserPosition!.longitude,
@@ -167,7 +169,6 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       emit(HomeLoading());
 
-// 1) Fetch route
       final routeDetails = await _getRouteFromOSRM(pickupLatLng, destination);
       if (routeDetails == null) {
         throw Exception("Could not find a route.");
@@ -177,12 +178,10 @@ class HomeCubit extends Cubit<HomeState> {
       final distanceInMeters = routeDetails['distance'] as double;
       final durationInSeconds = routeDetails['duration'] as double;
 
-// 2) Pricing / display strings
       final price = _calculatePrice(distanceInMeters, durationInSeconds);
       final distanceKm = (distanceInMeters / 1000).toStringAsFixed(1);
       final durationMinutes = (durationInSeconds / 60).ceil();
 
-// 3) Create a NEW polyline with a UNIQUE id every time
       final routeId = 'route_${DateTime.now().millisecondsSinceEpoch}';
       final routePolyline = Polyline(
         polylineId: PolylineId(routeId),
@@ -192,7 +191,6 @@ class HomeCubit extends Cubit<HomeState> {
         geodesic: true,
       );
 
-// 4) Create NEW markers set
       final pickupMarker = Marker(
         markerId: const MarkerId('pickup'),
         position: pickupLatLng,
@@ -204,7 +202,6 @@ class HomeCubit extends Cubit<HomeState> {
         icon: _destinationIcon!,
       );
 
-// 5) Move camera to fit bounds
       _mapController?.animateCamera(
         CameraUpdate.newLatLngBounds(
           _boundsFromLatLngList([pickupLatLng, destination]),
@@ -212,7 +209,6 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       );
 
-// 6) Emit a NEW state with NEW sets (don’t mutate old sets)
       emit(
         HomeRouteReady(
           pickupPosition: pickupLatLng,
@@ -223,8 +219,6 @@ class HomeCubit extends Cubit<HomeState> {
           distance: "$distanceKm km",
           duration: "$durationMinutes min",
           estimatedPrice: price.toStringAsFixed(2),
-          // If your HomeRouteReady supports a version, uncomment and use it:
-          // routeVersion: (curr is HomeRouteReady) ? curr.routeVersion + 1 : 1,
         ),
       );
     } catch (e) {
@@ -408,6 +402,17 @@ class HomeCubit extends Cubit<HomeState> {
           );
 
           if (distance <= radiusInMeters) {
+            // Compute rotation: prefer heading, else bearing from last to current
+            final last = _lastDriverPos[driver.uid];
+            double rotation = (driver.heading ?? 0).toDouble();
+            if ((rotation == 0 || rotation.isNaN) &&
+                last != null &&
+                (last.latitude != driverPosition.latitude ||
+                    last.longitude != driverPosition.longitude)) {
+              rotation = _bearing(last, driverPosition);
+            }
+            _lastDriverPos[driver.uid] = driverPosition;
+
             _driverMarkers.add(
               Marker(
                 markerId: MarkerId(driver.uid),
@@ -415,6 +420,7 @@ class HomeCubit extends Cubit<HomeState> {
                 icon: _driverIcon!,
                 anchor: const Offset(0.5, 0.5),
                 flat: true,
+                rotation: rotation,
               ),
             );
           }
@@ -432,7 +438,6 @@ class HomeCubit extends Cubit<HomeState> {
           markers: {userMarker, ..._driverMarkers},
         ));
       } else if (currentState is HomeRouteReady) {
-        // Also update the driver markers if a route is already active
         emit(HomeRouteReady(
           pickupPosition: currentState.pickupPosition,
           pickupAddress: currentState.pickupAddress,
@@ -472,10 +477,25 @@ class HomeCubit extends Cubit<HomeState> {
           markerId: const MarkerId('pickup'),
           position: customerPosition,
           icon: _pickupIcon!);
+
+      // Rotation for arrived driver marker
+      final last = _lastDriverPos[driver.uid];
+      double rotation = (driver.heading ?? 0).toDouble();
+      if ((rotation == 0 || rotation.isNaN) &&
+          last != null &&
+          (last.latitude != driverPosition.latitude ||
+              last.longitude != driverPosition.longitude)) {
+        rotation = _bearing(last, driverPosition);
+      }
+      _lastDriverPos[driver.uid] = driverPosition;
+
       final driverMarker = Marker(
           markerId: MarkerId(driver.uid),
           position: driverPosition,
-          icon: _driverIcon!);
+          icon: _driverIcon!,
+          flat: true,
+          rotation: rotation,
+          anchor: const Offset(0.5, 0.5));
 
       emit(HomeDriverArrived(
         trip: trip,
@@ -487,11 +507,10 @@ class HomeCubit extends Cubit<HomeState> {
 
   void listenToTripUpdates(String tripId) {
     final currentState = state;
-    // Ensure we are coming from a state that has the required data
     if (currentState is! HomeRouteReady) return;
     final customerMarker = currentState.markers.firstWhere(
       (m) => m.markerId.value == 'pickup',
-      orElse: () => currentState.markers.first, // Fallback
+      orElse: () => currentState.markers.first,
     );
     emit(HomeSearchingForDriver(
       tripId: tripId,
@@ -523,7 +542,6 @@ class HomeCubit extends Cubit<HomeState> {
           break;
         case 'cancelled':
           cancelTripRequest(tripId);
-
           break;
       }
     });
@@ -531,12 +549,10 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> cancelTripRequest(String tripId) async {
     try {
-      // The listener will automatically handle the state change when it sees this update.
       await _db.collection('trips').doc(tripId).update({'status': 'cancelled'});
       await _tripSubscription?.cancel();
       loadCurrentUserLocation();
     } catch (e) {
-      // Emit an error if the cancellation fails
       emit(HomeError(message: "Failed to cancel trip: ${e.toString()}"));
     }
   }
@@ -564,10 +580,25 @@ class HomeCubit extends Cubit<HomeState> {
             markerId: const MarkerId('pickup'),
             position: customerPosition,
             icon: _pickupIcon!);
+
+        // Rotation for en-route driver marker
+        final last = _lastDriverPos[driver.uid];
+        double rotation = (driver.heading ?? 0).toDouble();
+        if ((rotation == 0 || rotation.isNaN) &&
+            last != null &&
+            (last.latitude != driverPosition.latitude ||
+                last.longitude != driverPosition.longitude)) {
+          rotation = _bearing(last, driverPosition);
+        }
+        _lastDriverPos[driver.uid] = driverPosition;
+
         final driverMarker = Marker(
             markerId: MarkerId(driver.uid),
             position: driverPosition,
-            icon: _driverIcon!);
+            icon: _driverIcon!,
+            flat: true,
+            rotation: rotation,
+            anchor: const Offset(0.5, 0.5));
 
         emit(HomeDriverEnRoute(
           trip: trip,
@@ -590,11 +621,9 @@ class HomeCubit extends Cubit<HomeState> {
         .collection('trips')
         .doc(tripId)
         .collection('messages')
-        // 1. Get messages sent by the OTHER person
         .where('senderUid', isEqualTo: otherUserId)
         .snapshots()
         .listen((snapshot) {
-      // 2. From those messages, filter out the ones I have already read
       final unreadCount = snapshot.docs.where((doc) {
         final readBy = List<String>.from(doc.data()['readBy'] ?? []);
         return !readBy.contains(currentUserId);
@@ -610,7 +639,6 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void _handleTripInProgress(TripModel trip) {
-    // This is very similar to the driver's listener, but for the customer
     _assignedDriverSubscription?.cancel();
     _assignedDriverSubscription = _db
         .collection('drivers')
@@ -639,10 +667,24 @@ class HomeCubit extends Cubit<HomeState> {
           width: 5,
         );
 
+        // Rotation for in-progress driver marker
+        final last = _lastDriverPos[driver.uid];
+        double rotation = (driver.heading ?? 0).toDouble();
+        if ((rotation == 0 || rotation.isNaN) &&
+            last != null &&
+            (last.latitude != driverPosition.latitude ||
+                last.longitude != driverPosition.longitude)) {
+          rotation = _bearing(last, driverPosition);
+        }
+        _lastDriverPos[driver.uid] = driverPosition;
+
         final driverMarker = Marker(
           markerId: MarkerId(driver.uid),
           position: driverPosition,
           icon: _carIcon!,
+          flat: true,
+          rotation: rotation,
+          anchor: const Offset(0.5, 0.5),
         );
         final destinationMarker = Marker(
           markerId: const MarkerId('destination'),
@@ -666,28 +708,24 @@ class HomeCubit extends Cubit<HomeState> {
     _assignedDriverSubscription?.cancel();
 
     try {
-      // 1. Get the user's actual current position.
       final currentPosition = await _determinePosition();
       final customerFinalPosition =
           LatLng(currentPosition.latitude, currentPosition.longitude);
 
-      // 2. Create a marker at that actual location.
       final customerMarker = Marker(
         markerId: const MarkerId('currentLocation'),
         position: customerFinalPosition,
-        icon: _pickupIcon!, // Use the already loaded pickup icon
+        icon: _pickupIcon!,
       );
 
-      // 3. Animate the camera to the customer's final location.
       _mapController?.animateCamera(
           CameraUpdate.newLatLngZoom(customerFinalPosition, 16));
 
       emit(HomeTripCompleted(
         trip: trip,
-        markers: {customerMarker}, // Pass the new marker to the state
+        markers: {customerMarker},
       ));
     } catch (e) {
-      // If getting the location fails, emit an error or a default state.
       emit(HomeError(message: "Could not get final location: $e"));
     }
   }
@@ -700,5 +738,19 @@ class HomeCubit extends Cubit<HomeState> {
     _nearbyDriversSubscription?.cancel();
     _positionStreamSubscription?.cancel();
     return super.close();
+  }
+
+  // ---------- Bearing helpers ----------
+  double _degToRad(double deg) => deg * (math.pi / 180.0);
+  double _radToDeg(double rad) => rad * (180.0 / math.pi);
+
+  double _bearing(LatLng from, LatLng to) {
+    final lat1 = _degToRad(from.latitude);
+    final lat2 = _degToRad(to.latitude);
+    final dLon = _degToRad(to.longitude - from.longitude);
+    final y = math.sin(dLon) * math.cos(lat2);
+    final x = math.cos(lat1) * math.sin(lat2) -
+        math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+    return (_radToDeg(math.atan2(y, x)) + 360.0) % 360.0;
   }
 }

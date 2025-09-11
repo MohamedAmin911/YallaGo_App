@@ -33,6 +33,7 @@ class DriverModel {
 
   // --- Real-time Data ---
   final GeoPoint? currentLocation;
+  final double? heading;
 
   // --- Technical Metadata ---
   final String? fcmToken;
@@ -59,6 +60,7 @@ class DriverModel {
     this.rating = 5.0,
     this.totalRides = 0,
     this.currentLocation,
+    this.heading,
     this.fcmToken,
     this.stripeConnectAccountId,
     this.balance = 0.0,
@@ -85,6 +87,7 @@ class DriverModel {
       'rating': rating,
       'totalRides': totalRides,
       'currentLocation': currentLocation,
+      'heading': heading,
       'fcmToken': fcmToken,
       'stripeConnectAccountId': stripeConnectAccountId,
       'balance': balance,
@@ -112,6 +115,7 @@ class DriverModel {
       rating: (map['rating'] as num?)?.toDouble() ?? 5.0,
       totalRides: map['totalRides'] as int? ?? 0,
       currentLocation: map['currentLocation'],
+      heading: map['heading'],
       fcmToken: map['fcmToken'],
       stripeConnectAccountId: map['stripeConnectAccountId'],
       balance: (map['balance'] as num?)?.toDouble() ?? 0.0,

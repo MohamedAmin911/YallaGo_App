@@ -22,19 +22,16 @@ class _ChatBottomSheetState extends State<ChatBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // --- THE FIX IS HERE ---
-    // We now call this after the UI has been built for the first time.
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Use the context's ChatCubit, which is provided below.
         context.read<ChatCubit>().markMessagesAsRead(widget.tripId, user.uid);
       }
     });
   }
 
   void _sendMessage(BuildContext context) {
-    // Get the user directly from FirebaseAuth for reliability
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       context.read<ChatCubit>().sendMessage(

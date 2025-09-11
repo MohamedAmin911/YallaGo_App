@@ -60,7 +60,7 @@ class CustomerAppDrawer extends StatelessWidget {
                                   customerImageUrl,
                                   width: 120.w,
                                   height: 120.h,
-                                  fit: BoxFit.fitWidth,
+                                  fit: BoxFit.cover,
                                 )
                               : null,
                         ),

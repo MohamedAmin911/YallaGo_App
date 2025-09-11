@@ -67,9 +67,9 @@ class DriverProfileScreen extends StatelessWidget {
                 child: Text(
                   driver.email ?? "",
                   style: appStyle(
-                      size: 20.sp,
+                      size: 17.sp,
                       color: KColor.placeholder,
-                      fontWeight: FontWeight.w600),
+                      fontWeight: FontWeight.w900),
                 ),
               ),
               SizedBox(height: 30.h),
@@ -226,7 +226,7 @@ class DriverProfileScreen extends StatelessWidget {
                       driver.carImageUrl!,
                       width: 140.w,
                       height: 140.h,
-                      fit: BoxFit.fitWidth,
+                      fit: BoxFit.cover,
                     )
                   : Container(
                       width: 100.w,

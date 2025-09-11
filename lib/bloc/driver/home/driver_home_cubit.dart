@@ -53,6 +53,15 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
   }
 
+  // Camera helper: follow the driver with zoom + optional bearing
+  void _flyTo(LatLng target, {double zoom = 16, double bearing = 0}) {
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: target, zoom: zoom, bearing: bearing, tilt: 0),
+      ),
+    );
+  }
+
   // Load icons + initial state
   Future<void> loadInitialState() async {
     try {
@@ -100,7 +109,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         'isOnline': true,
       });
 
-      // Initial position (timeout-safe approach would be better in tough GPS conditions)
+      // Initial position
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -109,7 +118,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       await _db.collection('drivers').doc(driverUid).update({
         'currentLocation': GeoPoint(position.latitude, position.longitude),
         'heading': position.heading,
-        'updatedAt': FieldValue.serverTimestamp(), // CRITICAL for dashboard
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
       final driverMarker = Marker(
@@ -127,7 +136,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       // Start continuous updates
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 0, // meters
+        distanceFilter: 0,
       );
 
       await _positionStreamSubscription?.cancel();
@@ -154,8 +163,8 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
             flat: true,
           );
 
-          // Keep zoom; just pan to follow
-          _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
+          // Follow the driver icon with bearing
+          _flyTo(newLatLng, zoom: 16, bearing: pos.heading);
 
           emit(DriverOnline(
             currentPosition: newLatLng,
@@ -164,6 +173,8 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
           ));
         } else if (currentState is DriverEnRouteToPickup) {
           _handleEnRouteLocationUpdate(pos, currentState);
+        } else if (currentState is DriverTripInProgress) {
+          _handleInProgressLocationUpdate(pos, currentState);
         }
       });
 
@@ -321,7 +332,8 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       flat: true,
     );
 
-    _mapController?.animateCamera(CameraUpdate.newLatLng(newLatLng));
+    // Follow with bearing while en-route
+    _flyTo(newLatLng, zoom: 16, bearing: position.heading);
 
     emit(DriverEnRouteToPickup(
       driverPosition: newLatLng,
@@ -337,16 +349,47 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     _listenForUnreadMessages(
       currentState.acceptedTrip.tripId ?? "",
       FirebaseAuth.instance.currentUser!.uid,
-      currentState.acceptedTrip.driverUid ?? "",
+      currentState.acceptedTrip.customerUid,
     );
+  }
+
+  // Follow the driver while trip is in progress
+  void _handleInProgressLocationUpdate(
+    Position position,
+    DriverTripInProgress currentState,
+  ) {
+    final newLatLng = LatLng(position.latitude, position.longitude);
+
+    _db.collection('drivers').doc(driverUid).update({
+      'currentLocation': GeoPoint(position.latitude, position.longitude),
+      'heading': position.heading,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    final driverMarker = Marker(
+      markerId: const MarkerId('driver'),
+      position: newLatLng,
+      icon: _carIcon ?? BitmapDescriptor.defaultMarker,
+      rotation: position.heading,
+      anchor: const Offset(0.5, 0.5),
+      flat: true,
+    );
+
+    final destinationMarker = currentState.markers
+        .firstWhere((m) => m.markerId.value == 'destination');
+
+    _flyTo(newLatLng, zoom: 16, bearing: position.heading);
+
+    emit(DriverTripInProgress(
+      trip: currentState.trip,
+      markers: {driverMarker, destinationMarker},
+      polylines: currentState.polylines,
+    ));
   }
 
   void driverArrivedAtPickup() {
     final currentState = state;
     if (currentState is! DriverEnRouteToPickup) return;
-
-    _positionStreamSubscription?.cancel();
-    _positionStreamSubscription = null;
 
     _db.collection('trips').doc(currentState.acceptedTrip.tripId).update({
       'status': 'driver_arrived',
@@ -478,7 +521,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     });
   }
 
-  // OSRM helpers
   Future<List<LatLng>?> _getRouteFromOSRM(LatLng start, LatLng end) async {
     final url =
         'http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=polyline';

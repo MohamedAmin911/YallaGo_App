@@ -341,12 +341,16 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             SizedBox(height: 200.h),
-                            Text(
-                              "No Search History",
-                              style: appStyle(
-                                  size: 18.sp,
-                                  color: KColor.lightGray,
-                                  fontWeight: FontWeight.bold),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Text(
+                                  "No Search History",
+                                  style: appStyle(
+                                      size: 18.sp,
+                                      color: KColor.lightGray,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
                             ),
                           ],
                         ),

@@ -111,7 +111,7 @@ class CustomerProfileScreen extends StatelessWidget {
                     customer.profileImageUrl!,
                     width: 300.w,
                     height: 300.h,
-                    fit: BoxFit.fitWidth,
+                    fit: BoxFit.cover,
                   )
                 : null,
           ),
