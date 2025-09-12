@@ -86,8 +86,11 @@ To set up and run this project locally, you will need to:
 
 Clone the repository:
 
+```
 git clone <https://gitlab.com/mohamed-amin-dev/YallaGo_App>
 cd YallaGo
+```
+
 
 Set up Firebase:
 
