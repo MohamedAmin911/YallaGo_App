@@ -1,3 +1,5 @@
+![1](assets/images/logo5.png)
+
 YallaGo - Full-Stack Ride-Hailing Application
 YallaGo is a complete, real-time ride-hailing ecosystem built from the ground up, inspired by modern platforms like Uber and Careem. This project is not just a UI clone; it's a fully functional, multi-part system that demonstrates a deep understanding of full-stack mobile application architecture.
 
