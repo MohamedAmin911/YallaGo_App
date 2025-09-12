@@ -519,8 +519,8 @@ class HomeCubit extends Cubit<HomeState> {
     ));
     _mapController?.animateCamera(
         CameraUpdate.newLatLngZoom(currentState.pickupPosition, 15.5));
-    _tripSubscription?.cancel();
-    _assignedDriverSubscription?.cancel();
+    // _tripSubscription?.cancel();
+    // _assignedDriverSubscription?.cancel();
 
     _tripSubscription =
         _db.collection('trips').doc(tripId).snapshots().listen((snapshot) {
