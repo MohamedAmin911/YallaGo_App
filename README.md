@@ -11,6 +11,8 @@ The ecosystem consists of three distinct parts:
 
 🖥️ A Web-Based Admin Dashboard: For user verification and platform monitoring.
 
+🎥 Live Demo & Showcase
+![2](logo/B96A3592-8E36-4ee3-9438-ADCBC52E3482_video.mp4)
 
 ✨ Features
 This project is packed with features designed to create a complete and realistic user experience.
