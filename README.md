@@ -12,16 +12,16 @@ The ecosystem consists of three distinct parts:
 🖥️ A Web-Based Admin Dashboard: For user verification and platform monitoring.
 
 🎥 Driver Authentication
-![2](logo/DRIVER AUTH.mp4)
+
 
 🎥 Customer Authentication
-![3](logo/CUSTOMER AUTH.mp4)
+
 
 🎥 Driver app features
-![4](logo/DRIVER FEATURES.mp4)
+
 
 🎥 Customer app features
-![5](logo/CUSTOMER FEATURES.mp4)
+
 
 🎥 Live Trip booking
 ![2](logo/B96A3592-8E36-4ee3-9438-ADCBC52E3482_video.mp4)
