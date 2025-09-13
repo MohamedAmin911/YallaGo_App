@@ -11,6 +11,8 @@ The ecosystem consists of three distinct parts:
 
 🖥️ A Web-Based Admin Dashboard: For user verification and platform monitoring.
 
+🎥 Live Demo & Showcase
+![2](logo/B96A3592-8E36-4ee3-9438-ADCBC52E3482_video.mp4)
 
 ✨ Features
 This project is packed with features designed to create a complete and realistic user experience.
@@ -119,6 +121,18 @@ flutter pub get
 flutter run
 ```
 
+---
+
+## ⚖️ License & Usage
+
+This project is licensed under a custom portfolio license. Please see the `LICENSE.md` file for full details.
+
+-   **You ARE allowed to:** View, download, and run the code for personal, educational, and evaluation purposes.
+-   **You are NOT allowed to:** Use this code for any commercial purpose, distribute it, or sell it.
+
+This repository is intended to be a showcase of my skills and should be treated as such.
+
+---
 
 👤 Author
 Mohamed Amin
