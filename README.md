@@ -26,10 +26,12 @@ The ecosystem consists of three distinct parts:
 🎥 Live Trip booking
 ![2](logo/B96A3592-8E36-4ee3-9438-ADCBC52E3482_video.mp4)
 
+---
 ✨ Features
 This project is packed with features designed to create a complete and realistic user experience.
 
 👤 Customer App
+
 [x] Secure OTP Authentication: Passwordless sign-up and login using Firebase Auth.
 
 [x] Real-Time Map: Live tracking of nearby available drivers on Google Maps.
@@ -52,6 +54,7 @@ This project is packed with features designed to create a complete and realistic
 
 
 🚗 Driver App
+
 [x] Multi-Step Onboarding: A complete sign-up flow including profile info, vehicle details, and document uploads.
 
 [x] Online/Offline Status: Drivers can toggle their availability to receive ride requests.
@@ -73,7 +76,7 @@ This project is packed with features designed to create a complete and realistic
 [x] Local Notifications: Receive a notification when a trip is completed and paid for.
 
 
-
+---
 🛠️ Tech Stack & Architecture
 This project was built with a clean, scalable architecture (MVVM using the BLoC/Cubit pattern) to separate UI from business logic.
 
@@ -96,6 +99,8 @@ Image Handling: Cloudinary API
 Notifications: Flutter Local Notifications
 
 Local Storage: SharedPreferences
+---
+
 
 🚀 How to Run
 To set up and run this project locally, you will need to:
