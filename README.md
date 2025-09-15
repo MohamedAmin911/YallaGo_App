@@ -11,9 +11,11 @@ The ecosystem consists of three distinct parts:
 
 🖥️ A Web-Based Admin Dashboard: For user verification and platform monitoring.
 
+
 🎥 Driver Authentication
 
 https://github.com/user-attachments/assets/2f4df3a8-2a06-46ae-b070-4232ef1488e3
+
 
 
 
@@ -23,15 +25,18 @@ https://github.com/user-attachments/assets/d762a90a-e9d0-4a0f-92d3-6a9f20909b04
 
 
 
+
 🎥 Driver app features
 
 https://github.com/user-attachments/assets/c1c24edb-8aad-42e5-876f-a8a21c7651d1
 
 
 
+
 🎥 Customer app features
 
 https://github.com/user-attachments/assets/691c5e6f-c6de-4837-9f3e-8b615186e6cd
+
 
 
 
