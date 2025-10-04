@@ -13,19 +13,19 @@ The ecosystem consists of three distinct parts:
 
 🎥 Driver Authentication
 
-![2](logo/DRIVER AUTH.mp4)
+![2](logo/DRIVER_AUTH.mp4)
 
 🎥 Customer Authentication
 
-![3](logo/CUS AUTH.mp4)
+![3](logo/CUS_AUTH.mp4)
 
 🎥 Driver app features
 
-![4](logo/DRIVER FEA.mp4)
+![4](logo/DRIVER_FEA.mp4)
 
 🎥 Customer app features
 
-![5](logo/CUS FEATURES.mp4)
+![5](logo/CUS_FEATURES.mp4)
 
 🎥 Live Trip booking
 
