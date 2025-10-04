@@ -9,10 +9,8 @@ abstract class DriverHomeState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// The initial state when the screen is loading.
 class DriverHomeLoading extends DriverHomeState {}
 
-/// The state when the driver is offline and not tracking their location.
 class DriverOffline extends DriverHomeState {
   final LatLng lastKnownPosition;
 
@@ -22,7 +20,6 @@ class DriverOffline extends DriverHomeState {
   List<Object> get props => [lastKnownPosition];
 }
 
-/// The state when the driver is online and actively tracking their location.
 class DriverOnline extends DriverHomeState {
   final LatLng currentPosition;
   final Set<Marker> markers;
@@ -38,7 +35,6 @@ class DriverOnline extends DriverHomeState {
   List<Object?> get props => [currentPosition, markers, newTripRequest];
 }
 
-/// State for when the driver has arrived at the customer's pickup location.
 class DriverArrivedAtPickup extends DriverHomeState {
   final TripModel acceptedTrip;
   final Set<Marker> markers;
@@ -93,7 +89,7 @@ class DriverEnRouteToPickup extends DriverHomeState {
 class DriverTripInProgress extends DriverHomeState {
   final TripModel trip;
   final Set<Marker> markers;
-  final Set<Polyline> polylines; // The route to the destination
+  final Set<Polyline> polylines;
 
   const DriverTripInProgress({
     required this.trip,

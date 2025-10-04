@@ -25,7 +25,7 @@ class _DriverEnterMobileNumberViewState
     extends State<DriverEnterMobileNumberView> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  String _countryCode = '+20'; // Default to Egypt
+  String _countryCode = '+20';
 
   @override
   void dispose() {
@@ -67,7 +67,6 @@ class _DriverEnterMobileNumberViewState
               phoneNumber: '$_countryCode${_phoneController.text.trim()}',
             ));
           } else if (state is AuthError) {
-            // Show an error message if something goes wrong
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -77,7 +76,6 @@ class _DriverEnterMobileNumberViewState
           }
         },
         builder: (context, state) {
-          // The UI is built based on the current state
           final isLoading = state is AuthLoading;
 
           return SingleChildScrollView(
@@ -87,7 +85,6 @@ class _DriverEnterMobileNumberViewState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Text
                   Padding(
                     padding: EdgeInsets.only(top: 6.h, left: 24.w, right: 24.w),
                     child: Text(

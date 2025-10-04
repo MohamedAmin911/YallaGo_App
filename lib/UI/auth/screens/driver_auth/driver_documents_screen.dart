@@ -12,7 +12,6 @@ import 'package:taxi_app/UI/auth/screens/driver_auth/driver_payout_screen.dart';
 import 'package:taxi_app/UI/driver%20home/screens/driver_home_screen.dart';
 
 class DriverDocumentsScreen extends StatefulWidget {
-  // Receives all data from the previous screens
   final String fullName;
   final String email;
   final File? profileImageFile;
@@ -67,7 +66,6 @@ class _DriverDocumentsScreenState extends State<DriverDocumentsScreen> {
 
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => DriverPayoutScreen(
-        // Pass all the data forward
         fullName: widget.fullName,
         email: widget.email,
         profileImageFile: widget.profileImageFile,
@@ -123,7 +121,6 @@ class _DriverDocumentsScreenState extends State<DriverDocumentsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 22.h),
-                //title
                 Text(
                   "Documents",
                   style: appStyle(

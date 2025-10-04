@@ -15,18 +15,13 @@ class RideHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- THE FIX IS HERE ---
-    // Get the user directly from FirebaseAuth. This is safe because the user
-    // must be logged in to navigate to this screen.
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      // This is a safeguard in case something goes wrong.
       return const Scaffold(body: Center(child: Text("Error: Not logged in.")));
     }
 
     return BlocProvider(
-      // Use the user's UID directly.
       create: (context) => RideHistoryCubit()..fetchHistory(user.uid),
       child: Scaffold(
         appBar: AppBar(

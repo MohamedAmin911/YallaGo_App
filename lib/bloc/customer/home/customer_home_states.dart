@@ -63,7 +63,6 @@ class HomeRouteReady extends HomeState {
       ];
 }
 
-/// State for when the app is actively searching for a driver.
 class HomeSearchingForDriver extends HomeState {
   final String tripId;
   const HomeSearchingForDriver({
@@ -77,7 +76,6 @@ class HomeSearchingForDriver extends HomeState {
   List<Object?> get props => [tripId, currentPosition, markers];
 }
 
-/// State for when a driver has accepted the trip and is on their way.
 class HomeDriverEnRoute extends HomeState {
   final TripModel trip;
   final DriverModel driver;
@@ -111,7 +109,6 @@ class HomeDriverEnRoute extends HomeState {
   }
 }
 
-/// State for when the driver has arrived at the pickup location.
 class HomeDriverArrived extends HomeState {
   final TripModel trip;
   final DriverModel driver;

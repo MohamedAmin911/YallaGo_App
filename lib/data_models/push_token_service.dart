@@ -7,7 +7,6 @@ class PushTokenService {
   Future<void> register(String driverUid) async {
     final messaging = FirebaseMessaging.instance;
 
-// Ask permission (iOS, Android 13+ dialog is system-level)
     await messaging.requestPermission();
 
     final token = await messaging.getToken();

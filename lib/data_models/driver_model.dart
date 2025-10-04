@@ -1,41 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Represents a driver in the application.
 class DriverModel {
-  // --- Core Identification ---
   final String uid;
   final String phoneNumber;
   final Timestamp createdAt;
 
-  // --- Profile Information ---
   final String fullName;
   final String? email;
   final String? profileImageUrl;
 
-  // --- Vehicle Information ---
   final String carModel;
   final String licensePlate;
   final String carColor;
   final String? carImageUrl;
 
-  // --- NEW: Legal Document URLs ---
   final String? nationalIdUrl;
   final String? driversLicenseUrl;
   final String? carLicenseUrl;
   final String? criminalRecordUrl;
 
-  // --- Driver Status & Stats ---
   final String status;
   final bool isOnline;
   final double rating;
   final int totalRides;
   final double balance;
 
-  // --- Real-time Data ---
   final GeoPoint? currentLocation;
   final double? heading;
 
-  // --- Technical Metadata ---
   final String? fcmToken;
 
   final String? stripeConnectAccountId;

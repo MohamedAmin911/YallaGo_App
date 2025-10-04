@@ -8,16 +8,12 @@ import 'package:taxi_app/bloc/payment/payment_method_cubit.dart';
 import 'package:taxi_app/bloc/trip/trip_states.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 
-// --- STATES for Trip ---
-
-// --- CUBIT for Trip ---
 class TripCubit extends Cubit<TripState> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   StreamSubscription? _tripSubscription;
 
   TripCubit() : super(TripInitial());
 
-  /// Creates a new trip request in Firestore with a "searching" status.
   Future<void> createTripRequest({
     required String customerUid,
     required LatLng pickupPosition,
@@ -38,7 +34,7 @@ class TripCubit extends Cubit<TripState> {
         destinationAddress: destinationAddress,
         destinationLocation: GeoPoint(
             destinationPosition.latitude, destinationPosition.longitude),
-        status: "searching", // This is the key status for drivers to find
+        status: "searching",
         requestedAt: Timestamp.now(),
         estimatedFare: estimatedFare,
         customerName: customerName,
@@ -47,7 +43,6 @@ class TripCubit extends Cubit<TripState> {
 
       final docRef = await _db.collection('trips').add(trip.toMap());
 
-      // Emit a success state with the new trip's ID
       emit(TripCreated(tripId: docRef.id));
     } catch (e) {
       emit(
@@ -55,7 +50,6 @@ class TripCubit extends Cubit<TripState> {
     }
   }
 
-  /// Creates a new trip request in Firestore.
   Future<void> createTrip(TripModel trip) async {
     emit(TripLoading());
     try {
@@ -66,7 +60,6 @@ class TripCubit extends Cubit<TripState> {
     }
   }
 
-  /// Listens to a single trip for real-time updates (e.g., for live map tracking).
   void listenToTrip(String tripId) {
     _tripSubscription?.cancel();
     _tripSubscription =
@@ -87,7 +80,6 @@ class TripCubit extends Cubit<TripState> {
     });
   }
 
-  /// Fetches a list of past trips for a specific customer.
   Future<void> fetchTripHistory(String customerUid) async {
     emit(TripLoading());
     try {
@@ -111,7 +103,7 @@ class TripCubit extends Cubit<TripState> {
     required TripModel trip,
     required CustomerCubit customerCubit,
     required DriverCubit driverCubit,
-    required PaymentCubit paymentCubit, // inject it
+    required PaymentCubit paymentCubit,
     required double rating,
   }) async {
     if (trip.driverUid == null || trip.tripId == null) return;
@@ -122,7 +114,6 @@ class TripCubit extends Cubit<TripState> {
 
       final int amountCents = (trip.estimatedFare * 100).round();
 
-// 1) Charge rider
       final piId = await paymentCubit.stripeCharge(
         customerUid: trip.customerUid,
         amountCents: amountCents,
@@ -130,7 +121,6 @@ class TripCubit extends Cubit<TripState> {
       );
       if (piId == null) throw Exception('Payment failed');
 
-// 2) Immediately mark as paid so driver unblocks
       await tripRef.update({
         'paymentStatus': 'succeeded',
         'paymentIntentId': piId,
@@ -138,13 +128,11 @@ class TripCubit extends Cubit<TripState> {
         'paidAt': FieldValue.serverTimestamp(),
       });
 
-// 3) Add driver share to internal balance (no live transfer needed)
       const commission = 0.20;
       final driverShareCents = (amountCents * (1 - commission)).round();
       await driverCubit.addEarningsToBalance(
           trip.driverUid!, driverShareCents / 100.0);
 
-// 4) Stats and finalize
       await driverCubit.updateDriverRating(trip.driverUid!, rating);
       await driverCubit.incrementTotalRides(trip.driverUid!);
       await customerCubit.incrementTotalRides(trip.customerUid);

@@ -34,10 +34,8 @@ class TripModel {
       this.customerName,
       this.customerImageUrl});
 
-  /// Converts this TripModel instance into a Map for Firestore.
   Map<String, dynamic> toMap() {
     return {
-      // tripId is not stored in the map, as it's the document ID
       'customerUid': customerUid,
       'driverUid': driverUid,
       'status': status,
@@ -55,7 +53,6 @@ class TripModel {
     };
   }
 
-  /// Creates a TripModel instance from a Firestore map.
   factory TripModel.fromMap(Map<String, dynamic> map, String documentId) {
     return TripModel(
       tripId: documentId,
@@ -81,7 +78,6 @@ class TripModel {
     String? customerUid,
     String? driverUid,
     String? status,
-    // ... add all other fields here
   }) {
     return TripModel(
         tripId: tripId ?? this.tripId,

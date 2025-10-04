@@ -1,13 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Represents a saved payment method for a customer.
 class PaymentMethodModel {
-  // --- Core Fields ---
-  final String paymentMethodId; // This is the reusable token from Paymob
-  final String cardBrand; // e.g., "VISA", "MasterCard"
-  final String last4; // The last four digits of the card
+  final String paymentMethodId;
+  final String cardBrand;
+  final String last4;
 
-  // --- Metadata ---
   final bool isDefault;
   final Timestamp addedAt;
 
@@ -19,7 +16,6 @@ class PaymentMethodModel {
     required this.addedAt,
   });
 
-  /// Converts this PaymentMethodModel instance into a Map for Firestore.
   Map<String, dynamic> toMap() {
     return {
       'paymentMethodId': paymentMethodId,
@@ -30,7 +26,6 @@ class PaymentMethodModel {
     };
   }
 
-  /// Creates a PaymentMethodModel instance from a Firestore map.
   factory PaymentMethodModel.fromMap(Map<String, dynamic> map) {
     return PaymentMethodModel(
       paymentMethodId: map['paymentMethodId'] ?? '',

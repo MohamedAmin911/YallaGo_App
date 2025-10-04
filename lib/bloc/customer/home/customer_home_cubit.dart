@@ -34,7 +34,6 @@ class HomeCubit extends Cubit<HomeState> {
   BitmapDescriptor? _carIcon;
   final NotificationService _notificationService = NotificationService();
 
-  // Keep last seen position per driver to compute bearing if heading is missing.
   final Map<String, LatLng> _lastDriverPos = {};
 
   void setMapController(GoogleMapController controller) {
@@ -402,7 +401,6 @@ class HomeCubit extends Cubit<HomeState> {
           );
 
           if (distance <= radiusInMeters) {
-            // Compute rotation: prefer heading, else bearing from last to current
             final last = _lastDriverPos[driver.uid];
             double rotation = (driver.heading ?? 0).toDouble();
             if ((rotation == 0 || rotation.isNaN) &&
@@ -427,7 +425,6 @@ class HomeCubit extends Cubit<HomeState> {
         }
       }
 
-      // Combine the user's marker with the new driver markers
       final currentState = state;
       if (currentState is HomeMapReady) {
         final userMarker = currentState.markers
@@ -478,7 +475,6 @@ class HomeCubit extends Cubit<HomeState> {
           position: customerPosition,
           icon: _pickupIcon!);
 
-      // Rotation for arrived driver marker
       final last = _lastDriverPos[driver.uid];
       double rotation = (driver.heading ?? 0).toDouble();
       if ((rotation == 0 || rotation.isNaN) &&
@@ -519,8 +515,6 @@ class HomeCubit extends Cubit<HomeState> {
     ));
     _mapController?.animateCamera(
         CameraUpdate.newLatLngZoom(currentState.pickupPosition, 15.5));
-    // _tripSubscription?.cancel();
-    // _assignedDriverSubscription?.cancel();
 
     _tripSubscription =
         _db.collection('trips').doc(tripId).snapshots().listen((snapshot) {
@@ -581,7 +575,6 @@ class HomeCubit extends Cubit<HomeState> {
             position: customerPosition,
             icon: _pickupIcon!);
 
-        // Rotation for en-route driver marker
         final last = _lastDriverPos[driver.uid];
         double rotation = (driver.heading ?? 0).toDouble();
         if ((rotation == 0 || rotation.isNaN) &&
@@ -667,7 +660,6 @@ class HomeCubit extends Cubit<HomeState> {
           width: 5,
         );
 
-        // Rotation for in-progress driver marker
         final last = _lastDriverPos[driver.uid];
         double rotation = (driver.heading ?? 0).toDouble();
         if ((rotation == 0 || rotation.isNaN) &&
@@ -740,7 +732,6 @@ class HomeCubit extends Cubit<HomeState> {
     return super.close();
   }
 
-  // ---------- Bearing helpers ----------
   double _degToRad(double deg) => deg * (math.pi / 180.0);
   double _radToDeg(double rad) => rad * (180.0 / math.pi);
 

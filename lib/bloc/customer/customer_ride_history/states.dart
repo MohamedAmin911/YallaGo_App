@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 
-// --- States ---
 abstract class RideHistoryState extends Equatable {
   const RideHistoryState();
   @override

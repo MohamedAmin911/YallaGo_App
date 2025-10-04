@@ -42,7 +42,7 @@ class ChatCubit extends Cubit<ChatState> {
         senderUid: senderUid,
         text: text.trim(),
         timestamp: Timestamp.now(),
-        readBy: [senderUid], // The sender has automatically "read" it
+        readBy: [senderUid],
       );
 
       await _db
@@ -55,20 +55,16 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  // --- NEW FUNCTION ---
-  /// Marks all unread messages in a chat as read by the current user.
   Future<void> markMessagesAsRead(String tripId, String currentUserId) async {
     try {
       final messagesRef =
           _db.collection('trips').doc(tripId).collection('messages');
-      // Get all messages where the current user's ID is NOT in the 'readBy' array
       final unreadMessages = await messagesRef.where('readBy', whereNotIn: [
         [currentUserId]
       ]).get();
 
       final WriteBatch batch = _db.batch();
       for (final doc in unreadMessages.docs) {
-        // Add the current user's ID to the 'readBy' array for each unread message
         batch.update(doc.reference, {
           'readBy': FieldValue.arrayUnion([currentUserId])
         });

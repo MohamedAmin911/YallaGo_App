@@ -102,7 +102,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
                 const SnackBar(content: Text("Welcome back!")),
               );
               context.pushRlacement(const AuthGate());
-              // context.pushRlacement(const HomeScreen());
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Success!")),
@@ -166,7 +165,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
                   ),
                 ),
                 SizedBox(height: 41.h),
-                // PIN FIELD
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.h),
                   child: PinFieldAutoFill(
@@ -189,15 +187,9 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
                           FixedColorBuilder(KColor.primary.withOpacity(0.5)),
                       gapSpace: 10.w,
                     ),
-                    // onCodeChanged: (code) {
-                    //   if (code != null && code.length == 6) {
-                    //     _submitOtp();
-                    //   }
-                    // },
                   ),
                 ),
                 SizedBox(height: 40.h),
-                // BUTTON
                 Center(
                   child: SizedBox(
                     width: context.width * 0.9,
@@ -214,7 +206,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
                   ),
                 ),
                 SizedBox(height: 15.h),
-                // RESEND CODE
                 Center(
                   child: ValueListenableBuilder<int>(
                     valueListenable: _timerNotifier,

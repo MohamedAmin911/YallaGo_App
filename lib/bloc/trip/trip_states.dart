@@ -1,4 +1,3 @@
-// ignore: depend_on_referenced_packages
 import 'package:meta/meta.dart';
 import 'package:taxi_app/data_models/trip_model.dart';
 

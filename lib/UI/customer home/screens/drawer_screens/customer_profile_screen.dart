@@ -29,7 +29,6 @@ class CustomerProfileScreen extends StatelessWidget {
       body: BlocBuilder<CustomerCubit, CustomerState>(
         builder: (context, state) {
           if (state is! CustomerLoaded) {
-            // Show a loading indicator until the customer's data is available
             return Center(
                 child: CircularProgressIndicator(color: KColor.primary));
           }
@@ -49,11 +48,11 @@ class CustomerProfileScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 30.h),
-              // --- Profile Header ---
+              // Profile Header
               _buildProfileHeader(customer),
               const Divider(height: 40),
 
-              // --- Contact Information ---
+              //Contact Information
               _buildSectionTitle("Contact Info"),
               SizedBox(height: 8.h),
               _buildInfoTile(
@@ -68,7 +67,7 @@ class CustomerProfileScreen extends StatelessWidget {
               ),
               const Divider(height: 40),
 
-              // --- Saved Places ---
+              //Saved Places
               _buildSectionTitle("Saved Places"),
               SizedBox(height: 8.h),
               _buildInfoTile(
@@ -81,7 +80,7 @@ class CustomerProfileScreen extends StatelessWidget {
               ),
               const Divider(height: 40),
 
-              // --- Danger Zone ---
+              //Delete Account
               _buildActionTile(
                 title: "Delete Account",
                 icon: Icons.delete_outline,
@@ -100,7 +99,7 @@ class CustomerProfileScreen extends StatelessWidget {
   Widget _buildProfileHeader(CustomerModel customer) {
     return Column(
       children: [
-        // --- Profile Picture ---
+        //Profile Picture
         Material(
           borderRadius: BorderRadius.circular(30.r),
           elevation: 5,
@@ -130,9 +129,7 @@ class CustomerProfileScreen extends StatelessWidget {
           height: 40.h,
           child: RoundButton(
             title: "Edit Profile",
-            onPressed: () {
-              // TODO: Navigate to an "Edit Profile" screen
-            },
+            onPressed: () {},
             color: KColor.lightGray,
           ),
         ),
@@ -175,8 +172,6 @@ class CustomerProfileScreen extends StatelessWidget {
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
       ),
-      // trailing:
-      //     onTap != null ? Icon(Icons.arrow_forward_ios, size: 20.sp) : null,
       onTap: onTap,
     );
   }

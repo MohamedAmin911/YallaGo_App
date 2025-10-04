@@ -47,7 +47,6 @@ class _DriverCreateProfileScreenState extends State<DriverCreateProfileScreen> {
       return;
     }
 
-    // This screen now navigates to the CarInfoScreen, passing the collected data.
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => CarInfoScreen(
         profileImageFile: _imageFile,
@@ -60,7 +59,6 @@ class _DriverCreateProfileScreenState extends State<DriverCreateProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // This screen no longer needs a BlocConsumer.
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -82,7 +80,6 @@ class _DriverCreateProfileScreenState extends State<DriverCreateProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 22.h),
-                //title
                 Text(
                   "Create profile",
                   style: appStyle(
@@ -92,22 +89,16 @@ class _DriverCreateProfileScreenState extends State<DriverCreateProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 30.h),
-                // Profile Image
                 uploadImageWidget(),
                 SizedBox(height: 24.h),
-                // Input Fields
                 CustomerInputFields(
                     firstNameController: _firstNameController,
                     lastNameController: _lastNameController,
                     email: _email),
                 SizedBox(height: 10.h),
-
                 SizedBox(height: 20.h),
-                // Terms and conditions
                 const TermsAndConditions(),
                 SizedBox(height: 17.h),
-                //register button
-                // This is now a simple button that navigates.
                 RoundButton(
                   color: KColor.primary,
                   title: "NEXT",

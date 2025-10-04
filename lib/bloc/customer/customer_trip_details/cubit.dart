@@ -8,7 +8,6 @@ class TripDetailsCubit extends Cubit<TripDetailsState> {
 
   TripDetailsCubit() : super(TripDetailsLoading());
 
-  /// Fetches the details for a specific driver from Firestore.
   Future<void> fetchDriverDetails(String driverUid) async {
     try {
       emit(TripDetailsLoading());

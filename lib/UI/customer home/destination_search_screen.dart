@@ -39,9 +39,8 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
   Timer? _debounce;
   static const _debounceDur = Duration(milliseconds: 350);
 
-// Current city and aliases (en/ar) to match in predictions
   String? _currentCity;
-  String? _currentAdmin; // governorate
+  String? _currentAdmin;
   late final List<String> _cityAliases = [];
 
   @override
@@ -51,7 +50,7 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
     if (customerState is CustomerLoaded) {
       _searchHistory = customerState.customer.searchHistory ?? [];
     }
-    _resolveCurrentCity(); // fetch once
+    _resolveCurrentCity();
   }
 
   @override
@@ -62,7 +61,6 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
     super.dispose();
   }
 
-// Get the user's city name once (English/Arabic if available)
   Future<void> _resolveCurrentCity() async {
     try {
       final placemarks = await placemarkFromCoordinates(
@@ -96,15 +94,12 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
         }
       } catch (_) {}
 
-      // Add English aliases
       if (_currentCity != null) _cityAliases.add(_currentCity!.toLowerCase());
       if (_currentAdmin != null) _cityAliases.add(_currentAdmin!.toLowerCase());
-      // Always include Egypt
       _cityAliases.addAll(['egypt', 'مصر']);
 
-      setState(() {}); // ready for ranking
+      setState(() {});
     } catch (e) {
-      // Not critical; ranking will just skip city-priority
       debugPrint('resolve city error: $e');
     }
   }
@@ -125,12 +120,11 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
       final params = <String, String>{
         'input': q,
         'key': KapiKeys.googeleMapsApiKey,
-        'language': 'en', // or 'ar'
+        'language': 'en',
         'sessiontoken': _sessionToken,
-        // Bias to current position & radius so local items come first
         'location':
             '${widget.currentUserPosition.latitude},${widget.currentUserPosition.longitude}',
-        'radius': '30000', // 30km bias (tune as needed)
+        'radius': '30000',
       };
 
       final uri = Uri.https(
@@ -140,7 +134,6 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
       );
 
       final headers = <String, String>{'Accept': 'application/json'};
-      // Important for restricted keys (Android/iOS)
       try {
         headers.addAll(await const GoogleApiHeaders().getHeaders());
       } catch (_) {}
@@ -172,7 +165,6 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
           .map((m) => Prediction.fromJson(m))
           .toList();
 
-      // Re-rank: current-city/Egypt first
       final ranked = _rankPredictions(preds);
 
       if (!mounted) return;
@@ -193,9 +185,8 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
     }
   }
 
-// Simple scorer: predictions mentioning current city (en/ar) or Egypt rank higher
   List<Prediction> _rankPredictions(List<Prediction> preds) {
-    if (_cityAliases.isEmpty) return preds; // nothing to rank by yet
+    if (_cityAliases.isEmpty) return preds;
     int score(Prediction p) {
       final buf = StringBuffer();
       if (p.description != null) buf.write(p.description!.toLowerCase());
@@ -213,7 +204,6 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
         if (alias.isEmpty) continue;
         if (text.contains(alias)) s += 100;
       }
-      // De-emphasize some out-of-country hints (very light penalty)
       if (text.contains('london') ||
           text.contains('uk') ||
           text.contains('abu dhabi')) {

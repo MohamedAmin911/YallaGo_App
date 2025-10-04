@@ -9,27 +9,22 @@ class AuthCubit extends Cubit<AuthState> {
 
   String? _verificationId;
 
-  /// Sends an OTP code to the provided phone number.
   void sendOtp(String phoneNumber) async {
     emit(AuthLoading());
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          // This callback will be triggered on Android devices that support
-          // automatic SMS code resolution.
           await _signInWithCredential(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
           emit(AuthError(message: "Verification failed: ${e.message}"));
         },
         codeSent: (String verificationId, int? resendToken) {
-          // Store the verification ID and emit the state to navigate to the OTP screen.
           _verificationId = verificationId;
           emit(AuthCodeSent(verificationId: verificationId));
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          // You can handle timeout here if needed.
           _verificationId = verificationId;
         },
         timeout: const Duration(seconds: 60),
@@ -39,7 +34,6 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  /// Verifies the OTP code entered by the user.
   void verifyOtp(String otp) async {
     if (_verificationId == null) {
       emit(AuthError(message: "Verification ID is not available."));
@@ -58,7 +52,6 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  /// Signs in the user with the given credential and emits the final state.
   Future<void> _signInWithCredential(PhoneAuthCredential credential) async {
     try {
       UserCredential userCredential =
@@ -78,9 +71,8 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-      emit(AuthLoggedOut()); // Emit the new state on success
+      emit(AuthLoggedOut());
     } catch (e) {
-      // Handle potential sign-out errors, though they are rare
       emit(AuthError(message: "Failed to sign out: ${e.toString()}"));
     }
   }

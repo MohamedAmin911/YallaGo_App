@@ -89,7 +89,6 @@ class PayoutHistoryScreen extends StatelessWidget {
     final created =
         DateFormat('MMM d, yyyy - hh:mm a').format(p.createdAt.toDate());
 
-    // Color by status
     Color amountColor;
     switch (p.status.toLowerCase()) {
       case 'paid':

@@ -60,9 +60,7 @@ class _DriverSignupOrLogingScreenState
                   KImage.logo4,
                   width: 300.w,
                 ),
-                // const Spacer(),
                 SizedBox(height: 150.h),
-
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

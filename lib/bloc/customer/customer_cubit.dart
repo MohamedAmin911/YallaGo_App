@@ -75,10 +75,9 @@ class CustomerCubit extends Cubit<CustomerState> {
         homeAddress: homeAddress,
       );
 
-      // 3. Save the customer data to Firestore
       await _db.collection('customers').doc(uid).set(newCustomer.toMap());
 
-      emit(CustomerProfileCreated()); // Emit success state
+      emit(CustomerProfileCreated());
     } catch (e) {
       emit(CustomerError(message: "Failed to create profile: $e"));
       print(e);
@@ -90,7 +89,6 @@ class CustomerCubit extends Cubit<CustomerState> {
       final doc = await _db.collection('customers').doc(uid).get();
       return doc.exists;
     } catch (e) {
-      // If there's an error, assume the user doesn't exist to be safe.
       print("Error checking if user exists: $e");
       return false;
     }
@@ -102,7 +100,7 @@ class CustomerCubit extends Cubit<CustomerState> {
         "https://api.cloudinary.com/v1_1/${KapiKeys.cloudinaryCloudName}/image/upload");
     final request = http.MultipartRequest('POST', url)
       ..fields['upload_preset'] = KapiKeys.cloudinaryUploadPreset
-      ..fields['public_id'] = publicId // Set the public_id to the user's uid
+      ..fields['public_id'] = publicId
       ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
 
     final response = await request.send();
@@ -126,7 +124,6 @@ class CustomerCubit extends Cubit<CustomerState> {
         final customer = CustomerModel.fromMap(snapshot.data()!);
         emit(CustomerLoaded(customer: customer));
       } else {
-        // This case can happen if the user is authenticated but their document doesn't exist yet.
         emit(CustomerInitial());
       }
     }, onError: (error) {
@@ -137,7 +134,6 @@ class CustomerCubit extends Cubit<CustomerState> {
   Future<void> updateCustomer(String uid, Map<String, dynamic> data) async {
     try {
       await _db.collection('customers').doc(uid).update(data);
-      // No need to emit a new state, the stream will do it automatically.
     } catch (e) {
       emit(CustomerError(message: "Error updating customer: $e"));
     }
@@ -152,30 +148,23 @@ class CustomerCubit extends Cubit<CustomerState> {
         final customer = CustomerModel.fromMap(doc.data()!);
         List<Map<String, dynamic>> history = customer.searchHistory ?? [];
 
-        // Add a timestamp to the new search entry
         newSearch['timestamp'] = Timestamp.now();
 
-        // Prevent duplicates by removing any existing entry with the same address
         history.removeWhere((item) => item['address'] == newSearch['address']);
 
-        // Add the new search to the beginning of the list
         history.insert(0, newSearch);
 
-        // Keep only the last 5 searches
         if (history.length > 5) {
           history = history.sublist(0, 5);
         }
 
-        // Update the document in Firestore
         await docRef.update({'searchHistory': history});
       }
     } catch (e) {
       print("Error adding to search history: $e");
-      // You could emit an error state here if you want to notify the user
     }
   }
 
-  /// Increments the totalRides count for a customer.
   Future<void> incrementTotalRides(String customerId) async {
     try {
       await _db.collection('customers').doc(customerId).update({

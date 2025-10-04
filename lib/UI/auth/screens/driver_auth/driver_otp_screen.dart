@@ -167,7 +167,6 @@ class _DriverOtpVerificationViewState extends State<DriverOtpVerificationView>
                   ),
                 ),
                 SizedBox(height: 41.h),
-                // PIN FIELD
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.h),
                   child: PinFieldAutoFill(
@@ -190,15 +189,9 @@ class _DriverOtpVerificationViewState extends State<DriverOtpVerificationView>
                           FixedColorBuilder(KColor.primary.withOpacity(0.5)),
                       gapSpace: 10.w,
                     ),
-                    // onCodeChanged: (code) {
-                    //   if (code != null && code.length == 6) {
-                    //     _submitOtp();
-                    //   }
-                    // },
                   ),
                 ),
                 SizedBox(height: 40.h),
-                // BUTTON
                 Center(
                   child: SizedBox(
                     width: context.width * 0.9,
@@ -215,7 +208,6 @@ class _DriverOtpVerificationViewState extends State<DriverOtpVerificationView>
                   ),
                 ),
                 SizedBox(height: 15.h),
-                // RESEND CODE
                 Center(
                   child: ValueListenableBuilder<int>(
                     valueListenable: _timerNotifier,

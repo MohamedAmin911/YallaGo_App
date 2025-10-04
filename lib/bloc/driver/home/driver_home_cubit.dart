@@ -53,7 +53,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
   }
 
-  // Camera helper: follow the driver with zoom + optional bearing
   void _flyTo(LatLng target, {double zoom = 16, double bearing = 0}) {
     _mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
@@ -62,7 +61,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     );
   }
 
-  // Load icons + initial state
   Future<void> loadInitialState() async {
     try {
       _carIcon ??= await _bitmapDescriptorFromAsset(KImage.carYellow, 120);
@@ -78,7 +76,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
 
       final driver = DriverModel.fromMap(doc.data()!);
 
-      // Try last known; if null, try current
       final lastPosition = await Geolocator.getLastKnownPosition();
       final currentPosition = lastPosition ??
           await Geolocator.getCurrentPosition(
@@ -89,7 +86,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
           LatLng(currentPosition.latitude, currentPosition.longitude);
 
       if (driver.isOnline) {
-        // If already online, kick off tracking
         await goOnline();
       } else {
         emit(DriverOffline(lastKnownPosition: latLng));
@@ -100,7 +96,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     }
   }
 
-  // Online: write isOnline, write initial location (with updatedAt), emit Online, start position stream
   Future<void> goOnline() async {
     try {
       emit(DriverHomeLoading());
@@ -109,7 +104,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         'isOnline': true,
       });
 
-      // Initial position
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -133,7 +127,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
       emit(DriverOnline(currentPosition: latLng, markers: {driverMarker}));
 
-      // Start continuous updates
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 0,
@@ -145,7 +138,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
               .listen((pos) async {
         final newLatLng = LatLng(pos.latitude, pos.longitude);
 
-        // Firestore write (always include updatedAt)
         await _db.collection('drivers').doc(driverUid).update({
           'currentLocation': GeoPoint(pos.latitude, pos.longitude),
           'heading': pos.heading,
@@ -163,7 +155,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
             flat: true,
           );
 
-          // Follow the driver icon with bearing
           _flyTo(newLatLng, zoom: 16, bearing: pos.heading);
 
           emit(DriverOnline(
@@ -332,7 +323,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
       flat: true,
     );
 
-    // Follow with bearing while en-route
     _flyTo(newLatLng, zoom: 16, bearing: position.heading);
 
     emit(DriverEnRouteToPickup(
@@ -353,7 +343,6 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
     );
   }
 
-  // Follow the driver while trip is in progress
   void _handleInProgressLocationUpdate(
     Position position,
     DriverTripInProgress currentState,
@@ -532,9 +521,7 @@ class DriverHomeCubit extends Cubit<DriverHomeState> {
         final geometry = route['geometry'] as String;
         return _decodePolyline(geometry);
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
     return null;
   }
 

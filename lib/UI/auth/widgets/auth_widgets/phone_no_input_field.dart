@@ -31,7 +31,7 @@ class PhoneNumberInputField extends StatelessWidget {
               borderRadius: BorderRadius.circular(5.r),
             ),
             onChanged: onCountryChanged,
-            initialSelection: 'EG', // Set initial selection to Egypt
+            initialSelection: 'EG',
             favorite: const ['+20', 'EG'],
             showDropDownButton: false,
             dialogTextStyle: appStyle(
@@ -46,7 +46,6 @@ class PhoneNumberInputField extends StatelessWidget {
             barrierColor: KColor.lightGray.withOpacity(0.5),
             hideSearch: true,
             textStyle: appStyle(
-              // Style for the selected code in the UI
               size: 16,
               color: KColor.primaryText,
               fontWeight: FontWeight.w500,
@@ -112,12 +111,10 @@ class PhoneNumberInputField extends StatelessWidget {
                 if (value == null || value.isEmpty) {
                   return 'Phone number is required';
                 }
-                // New check: Ensure the input contains only digits
                 final isDigitsOnly = RegExp(r'^[0-9]+$').hasMatch(value);
                 if (!isDigitsOnly) {
                   return 'Only digits are allowed';
                 }
-                // Simple validation for length, adjust for your needs
                 if (value.length < 9 || value.length > 11) {
                   return 'Invalid phone number length';
                 }

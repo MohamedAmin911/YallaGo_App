@@ -46,7 +46,7 @@ class TripDetailsScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 30.h),
-            // --- Driver Header ---
+            //Driver Header
             BlocBuilder<TripDetailsCubit, TripDetailsState>(
               builder: (context, state) {
                 if (state is TripDetailsLoading) {
@@ -63,7 +63,7 @@ class TripDetailsScreen extends StatelessWidget {
             ),
             SizedBox(height: 24.h),
 
-            // --- Trip Info Card ---
+            //Trip Info Card
             _buildInfoCard(
               children: [
                 _buildDetailRow(
@@ -88,7 +88,7 @@ class TripDetailsScreen extends StatelessWidget {
             ),
             SizedBox(height: 20.h),
 
-            // --- Payment & Rating Card ---
+            //Payment & Rating Card
             _buildInfoCard(
               children: [
                 _buildDetailRow(

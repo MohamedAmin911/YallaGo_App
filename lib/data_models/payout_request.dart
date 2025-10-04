@@ -6,8 +6,8 @@ class PayoutRequest {
   final String? driverName;
   final String driverStripeAccountId;
   final int amountCents;
-  final String currency; // e.g., 'usd' or 'egp' (display only)
-  final String status; // pending | approved | paid | rejected | failed
+  final String currency;
+  final String status;
   final Timestamp createdAt;
   final Timestamp? approvedAt;
   final Timestamp? processedAt;

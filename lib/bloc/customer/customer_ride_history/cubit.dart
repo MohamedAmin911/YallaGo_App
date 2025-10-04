@@ -8,7 +8,6 @@ class RideHistoryCubit extends Cubit<RideHistoryState> {
 
   RideHistoryCubit() : super(RideHistoryLoading());
 
-  /// Fetches all completed trips for a specific customer.
   Future<void> fetchHistory(String customerUid) async {
     try {
       emit(RideHistoryLoading());
@@ -16,7 +15,7 @@ class RideHistoryCubit extends Cubit<RideHistoryState> {
           .collection('trips')
           .where('customerUid', isEqualTo: customerUid)
           .where('status', isEqualTo: 'completed')
-          .orderBy('requestedAt', descending: true) // Show newest trips first
+          .orderBy('requestedAt', descending: true)
           .get();
 
       final trips = querySnapshot.docs

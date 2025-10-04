@@ -14,7 +14,7 @@ class CustomTxtField1 extends StatelessWidget {
     required this.errorText,
     required this.isObscure,
     this.onChanged,
-    this.validator, // ADDED: New optional validator parameter
+    this.validator,
   });
 
   final TextEditingController controller;
@@ -24,7 +24,6 @@ class CustomTxtField1 extends StatelessWidget {
   bool obscureText;
   final TextInputType keyboardType;
   final Function(String)? onChanged;
-  // ADDED: New optional validator property
   final String? Function(String?)? validator;
 
   @override
@@ -59,8 +58,6 @@ class CustomTxtField1 extends StatelessWidget {
                     color: KColor.primary,
                   ),
                   onPressed: () {
-                    // Note: This toggle will not visually update correctly
-                    // because this is a StatelessWidget.
                     obscureText = !obscureText;
                     (context as Element).markNeedsBuild();
                   },
@@ -80,9 +77,6 @@ class CustomTxtField1 extends StatelessWidget {
               fontWeight: FontWeight.w600),
           hintText: hintText,
         ),
-        // --- THE EDIT IS HERE ---
-        // It uses the provided validator if it exists, otherwise it falls back
-        // to your original default validation logic.
         validator: validator ??
             (value) {
               if (value == null || value.isEmpty) {

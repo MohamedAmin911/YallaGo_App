@@ -135,7 +135,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Image.asset(KImage.logo3, width: 300.w),
             SizedBox(height: 30.h),
             CircularProgressIndicator(color: KColor.bg),
           ],

@@ -11,7 +11,6 @@ import 'package:taxi_app/common_widgets/txt_field_1.dart';
 import 'package:taxi_app/UI/auth/screens/driver_auth/driver_documents_screen.dart';
 
 class CarInfoScreen extends StatefulWidget {
-  // This screen receives the data from the previous profile creation screen
   final String fullName;
   final String email;
   final File? profileImageFile;
@@ -35,7 +34,7 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
   File? _carImageFile;
   final ImagePicker _picker = ImagePicker();
 
-  Color _selectedCarColor = Colors.black; // Default color
+  Color _selectedCarColor = Colors.black;
 
   void _showColorPickerDialog() {
     showDialog(
@@ -84,16 +83,11 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
       return;
     }
 
-    // --- THE EDIT IS HERE ---
-    // This screen no longer calls the cubit.
-    // It navigates to the next screen, passing ALL the data collected so far.
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => DriverDocumentsScreen(
-        // Pass data from the previous screen
         fullName: widget.fullName,
         email: widget.email,
         profileImageFile: widget.profileImageFile,
-        // Pass data from this screen
         carModel: _carModelController.text.trim(),
         licensePlate: _licensePlateController.text.trim(),
         carColor: '#${_selectedCarColor.value.toRadixString(16).substring(2)}',
@@ -111,7 +105,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // This screen no longer needs a BlocConsumer.
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -132,7 +125,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 22.h),
-              //title
               Text(
                 "Add your car info",
                 style: appStyle(
@@ -142,8 +134,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                 ),
               ),
               SizedBox(height: 30.h),
-
-              // Car Image Picker
               GestureDetector(
                 onTap: _pickCarImage,
                 child: Container(
@@ -175,8 +165,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                 ),
               ),
               SizedBox(height: 24.h),
-
-              // Form Fields
               CustomTxtField1(
                 controller: _carModelController,
                 hintText: "Car Model (e.g., Toyota Corolla 2022)",
@@ -195,8 +183,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                 errorText: "Please enter your license plate",
               ),
               SizedBox(height: 16.h),
-
-              // Color Picker Widget
               InkWell(
                 onTap: _showColorPickerDialog,
                 child: Container(
@@ -224,8 +210,6 @@ class _CarInfoScreenState extends State<CarInfoScreen> {
                 ),
               ),
               SizedBox(height: 40.h),
-
-              // Continue Button
               RoundButton(
                 title: "CONTINUE",
                 onPressed: _submitCarInfo,

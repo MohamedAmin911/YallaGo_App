@@ -55,7 +55,6 @@ class MyApp extends StatelessWidget {
         BlocProvider<DriverCubit>(create: (context) => DriverCubit()),
         BlocProvider<TripCubit>(create: (context) => TripCubit()),
         BlocProvider<ChatCubit>(create: (context) => ChatCubit()),
-        // BlocProvider<HomeCubit>(create: (context) => HomeCubit()),
       ],
       child: ScreenUtilInit(
           designSize: Size(MediaQuery.of(context).copyWith().size.width,
@@ -73,7 +72,6 @@ class MyApp extends StatelessWidget {
                 useMaterial3: false,
               ),
               home: const SplashScreen(),
-              // const AuthGate(),
             );
           }),
 =======

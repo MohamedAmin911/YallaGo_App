@@ -29,7 +29,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final HomeCubit _homeCubit; // keep a single instance
+  late final HomeCubit _homeCubit;
   double _rating = 5.0;
 
   void _updateRating(double newRating) => setState(() => _rating = newRating);
@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    if (!mounted) return; // avoid using context after dispose
+    if (!mounted) return;
 
     if (result != null && result is Map) {
       final destination = result['location'] as LatLng;
@@ -74,10 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
             listener: (context, state) {
               if (state is AuthLoggedOut) {
                 context.pushRlacement(const AuthGate());
-// Navigator.of(context).pushAndRemoveUntil(
-// MaterialPageRoute(builder: () => ),
-// (route) => false,
-// );
               }
             },
           ),

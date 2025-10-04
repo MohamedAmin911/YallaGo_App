@@ -204,15 +204,3 @@ Widget buildConfirmationPanel(BuildContext context, HomeRouteReady state,
     ),
   );
 }
-
-// Widget _buildTripDetail({required IconData icon, required String value}) {
-//   return Column(
-//     children: [
-//       Icon(icon, color: KColor.primary, size: 25.sp),
-//       SizedBox(height: 4.h),
-//       Text(value,
-//           style: appStyle(
-//               size: 14.sp, color: KColor.primary, fontWeight: FontWeight.bold)),
-//     ],
-//   );
-// }

@@ -43,12 +43,10 @@ class PayoutDetailsScreen extends StatelessWidget {
           ),
           SizedBox(height: 30.h),
 
-          // Header (mirrors _buildCustomerHeader)
           _buildHeader(req),
 
           SizedBox(height: 24.h),
 
-          // Info Card (mirrors _buildInfoCard)
           _buildInfoCard(
             children: [
               // Date
@@ -111,7 +109,6 @@ class PayoutDetailsScreen extends StatelessWidget {
                 child: const Divider(),
               ),
 
-              // Final Amount (mirrors “Final Fare” style)
               _buildDetailRow(
                 icon: Icons.attach_money,
                 title: "Final Amount",
@@ -119,7 +116,6 @@ class PayoutDetailsScreen extends StatelessWidget {
                 valueColor: Colors.green,
               ),
 
-              // Optional: failure reason / note (kept inside the same card)
               if ((req.failureReason ?? '').isNotEmpty) ...[
                 const Divider(),
                 _buildDetailRow(
@@ -148,7 +144,6 @@ class PayoutDetailsScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Avatar-style box (like customer image in trip screen)
         ClipRRect(
           borderRadius: BorderRadius.circular(8.r),
           child: Container(
@@ -250,7 +245,6 @@ class PayoutDetailsScreen extends StatelessWidget {
   String _shortAcct(String acct) {
     if (acct.isEmpty) return 'Stripe Account';
     if (acct.length <= 10) return acct;
-    // show head/tail like acct_1Rz...T0rK
     final head = acct.substring(0, 6);
     final tail = acct.substring(acct.length - 4);
     return '$head…$tail';

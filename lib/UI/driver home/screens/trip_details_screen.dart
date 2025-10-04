@@ -39,11 +39,11 @@ class TripDetailsScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 30.h),
-          // --- Customer Header ---
+          //Customer Header
           _buildCustomerHeader(trip),
           SizedBox(height: 24.h),
 
-          // --- Trip Info Card ---
+          //Trip Info Card
           _buildInfoCard(
             children: [
               _buildDetailRow(
@@ -68,7 +68,7 @@ class TripDetailsScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 child: const Divider(),
               ),
-              // --- Payment & Rating Card ---
+              //Payment & Rating Card
 
               _buildDetailRow(
                 icon: Icons.attach_money,
@@ -77,7 +77,7 @@ class TripDetailsScreen extends StatelessWidget {
                 valueColor: Colors.green,
               ),
               const Divider(),
-              // --- Rating Card ---
+              //Rating Card
               Row(
                 children: [
                   Icon(

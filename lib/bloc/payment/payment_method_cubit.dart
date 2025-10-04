@@ -10,8 +10,7 @@ class PaymentCubit extends Cubit<PaymentState> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   PaymentCubit() : super(PaymentInitial());
 
-  final String base =
-      'https://eocyz9fe1kyb8l0.m.pipedream.net'; // root for your endpoints
+  final String base = 'https://eocyz9fe1kyb8l0.m.pipedream.net';
 
   Future<String> _ensureStripeCustomer({
     required String customerUid,
@@ -19,7 +18,6 @@ class PaymentCubit extends Cubit<PaymentState> {
     required String name,
     required String phone,
   }) async {
-    // Try to read existing stripeCustomerId
     final doc = await _db.collection('customers').doc(customerUid).get();
     final existing = doc.data()?['stripeCustomerId'] as String?;
     if (existing != null && existing.isNotEmpty) return existing;
@@ -60,7 +58,6 @@ class PaymentCubit extends Cubit<PaymentState> {
         phone: phone,
       );
 
-// Create SetupIntent
       final r = await http.post(
         Uri.parse('$base/create_setup_intent'),
         headers: {
@@ -72,7 +69,6 @@ class PaymentCubit extends Cubit<PaymentState> {
       final data = json.decode(r.body) as Map<String, dynamic>;
       final clientSecret = data['setupIntent']['client_secret'] as String;
 
-// Confirm on device
       final billing =
           BillingDetails(name: fullName, email: email, phone: phone);
       final setupIntent = await Stripe.instance.confirmSetupIntent(
@@ -82,7 +78,6 @@ class PaymentCubit extends Cubit<PaymentState> {
         ),
       );
 
-// Find the saved PM
       String? createdPmId = setupIntent.paymentMethodId;
       Map<String, dynamic>? pm;
 
@@ -180,8 +175,6 @@ class PaymentCubit extends Cubit<PaymentState> {
       }
       final piId = pi['id'] as String;
 
-// Optional: emit success; or keep as-is if UI doesn’t react here
-// emit(PaymentSuccess(piId));
       emit(PaymentMethodAdded());
       return piId;
     } catch (e) {
@@ -196,7 +189,6 @@ class PaymentCubit extends Cubit<PaymentState> {
   }) async {
     emit(PaymentLoading());
     try {
-// 1) Call Pipedream to detach from Stripe Customer (keeps Stripe clean)
       final res = await http.post(
         Uri.parse('$base/detach_payment_method'),
         headers: {
@@ -210,7 +202,6 @@ class PaymentCubit extends Cubit<PaymentState> {
         throw Exception(data['error'] ?? 'Detach failed');
       }
 
-// 2) Delete from Firestore
       final col = _db
           .collection('customers')
           .doc(customerUid)
@@ -221,7 +212,6 @@ class PaymentCubit extends Cubit<PaymentState> {
 
       await docRef.delete();
 
-// 3) If it was default, promote another one
       if (wasDefault) {
         final others = await col.limit(1).get();
         if (others.docs.isNotEmpty) {
@@ -229,7 +219,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         }
       }
 
-      emit(PaymentMethodAdded()); // reuse for "list changed"
+      emit(PaymentMethodAdded());
     } catch (e) {
       emit(PaymentError(message: 'Detach failed: $e'));
     }
@@ -252,17 +242,6 @@ class PaymentCubit extends Cubit<PaymentState> {
         batch.update(d.reference, {'isDefault': d.id == paymentMethodId});
       }
       await batch.commit();
-
-// Optional: set default on Stripe customer too (uncomment if you add the route)
-// final userDoc = await _db.collection('customers').doc(customerUid).get();
-// final customerId = userDoc.data()?['stripeCustomerId'] as String?;
-// if (customerId != null) {
-//   await http.post(
-//     Uri.parse('$base/set_default_payment_method'),
-//     headers: {'Content-Type': 'application/json', 'x-api-key': KapiKeys.pipedreamApiKey},
-//     body: json.encode({'customerId': customerId, 'paymentMethodId': paymentMethodId}),
-//   );
-// }
 
       emit(PaymentMethodAdded());
     } catch (e) {

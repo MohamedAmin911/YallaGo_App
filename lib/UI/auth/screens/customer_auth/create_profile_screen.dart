@@ -146,7 +146,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 22.h),
-                  //title
                   Text(
                     "Create profile",
                     style: appStyle(
@@ -156,10 +155,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     ),
                   ),
                   SizedBox(height: 30.h),
-                  // Profile Image
                   uploadImageWidget(),
                   SizedBox(height: 24.h),
-                  // Input Fields
                   CustomerInputFields(
                       firstNameController: _firstNameController,
                       lastNameController: _lastNameController,
@@ -209,10 +206,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           ),
                         ),
                   SizedBox(height: 20.h),
-                  // Terms and conditions
                   const TermsAndConditions(),
                   SizedBox(height: 17.h),
-                  //register button
                   isLoading
                       ? Center(
                           child: CircularProgressIndicator(

@@ -27,38 +27,18 @@ class _DriverEnterMobileNumberViewLoginState
   final _phoneController = TextEditingController();
   String _countryCode = '+20';
   bool _rememberMe = false;
-  // static const String _phoneKey = 'saved_phone_number';
-  // static const String _countryCodeKey = 'saved_country_code';
+
   @override
   void initState() {
     super.initState();
-    // _loadSavedPhoneNumber();
   }
-
-  // Future<void> _loadSavedPhoneNumber() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   // final savedPhone = prefs.getString(_phoneKey);
-  //   // print("Saved Phone: $savedPhone");
-  //   // final savedCountryCode = prefs.getString(_countryCodeKey);
-  //   if (_rememberMe != null) {
-  //     setState(() {
-  //       // _phoneController.text = savedPhone;
-  //       // _countryCode = savedCountryCode ?? '+20';
-  //       _rememberMe = true;
-  //     });
-  //   }
-  // }
 
   Future<void> _handleRememberMe() async {
     final prefs = await SharedPreferences.getInstance();
     if (_rememberMe) {
-      // await prefs.setString(_phoneKey, phoneNumber);
-      // await prefs.setString(_countryCodeKey, countryCode);
       await prefs.setBool('rememberMe', _rememberMe);
     } else {
       await prefs.setBool('rememberMe', _rememberMe);
-      // await prefs.remove(_phoneKey);
-      // await prefs.remove(_countryCodeKey);
     }
   }
 
@@ -102,7 +82,6 @@ class _DriverEnterMobileNumberViewLoginState
               phoneNumber: '$_countryCode${_phoneController.text.trim()}',
             ));
           } else if (state is AuthError) {
-            // Show an error message if something goes wrong
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -112,7 +91,6 @@ class _DriverEnterMobileNumberViewLoginState
           }
         },
         builder: (context, state) {
-          // The UI is built based on the current state
           final isLoading = state is AuthLoading;
 
           return SingleChildScrollView(
@@ -122,7 +100,6 @@ class _DriverEnterMobileNumberViewLoginState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Text
                   Padding(
                     padding: EdgeInsets.only(top: 6.h, left: 24.w, right: 24.w),
                     child: Text(
@@ -139,7 +116,6 @@ class _DriverEnterMobileNumberViewLoginState
                     phoneController: _phoneController,
                     onCountryChanged: _onCountryChange,
                   ),
-                  //remember me checkbox
                   Row(
                     children: [
                       SizedBox(width: 24.w),
@@ -165,7 +141,6 @@ class _DriverEnterMobileNumberViewLoginState
                     ],
                   ),
                   SizedBox(height: 16.h),
-                  //btn
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.w),
                     child: isLoading

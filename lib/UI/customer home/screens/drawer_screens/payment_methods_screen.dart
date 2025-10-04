@@ -41,7 +41,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     }
     final user = customerState.customer;
 
-// Reuse your existing AddPaymentMethod screen
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AddPaymentMethod(
@@ -244,7 +243,6 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-// Colors and styles from your theme
     final primary = KColor.primary;
 
     final gradient = LinearGradient(
@@ -260,7 +258,6 @@ class _PaymentCard extends StatelessWidget {
     final brandText = brandUpper == 'MASTERCARD' ? 'MASTER CARD' : brandUpper;
 
     return Container(
-// Let the SizedBox above control overall height; fill available
       height: double.infinity,
       decoration: BoxDecoration(
         gradient: gradient,
@@ -278,7 +275,6 @@ class _PaymentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween, // instead of Spacer
         children: [
-// Brand and default badge
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -307,8 +303,6 @@ class _PaymentCard extends StatelessWidget {
                 ),
             ],
           ),
-
-          // Bottom block
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

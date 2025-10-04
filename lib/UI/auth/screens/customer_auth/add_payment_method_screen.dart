@@ -86,7 +86,6 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Card added successfully!")),
             );
-            // Navigate to the home screen after successfully adding a card
             widget.redirectToPaymentMethods
                 ? Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
@@ -139,7 +138,6 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
                     ),
                     SizedBox(height: 50.h),
 
-                    // Cardholder Name
                     CustomTxtField1(
                       controller: _cardholderNameController,
                       hintText: "Cardholder Name",
@@ -150,7 +148,6 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
                     ),
                     SizedBox(height: 18.h),
 
-                    // ----Stripe Payment Method Form----
                     CardField(
                       controller: _cardFieldController,
                       decoration: InputDecoration(
@@ -193,7 +190,6 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
                     ),
                     SizedBox(height: 15.h),
 
-                    //---powered by Stripe---
                     Row(
                       children: [
                         const Spacer(),
@@ -216,7 +212,6 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
 
                     SizedBox(height: 40.h),
 
-                    // ---Save Card Button---
                     isLoading
                         ? Center(
                             child: CircularProgressIndicator(

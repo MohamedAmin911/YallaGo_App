@@ -80,7 +80,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           drawer: const DriverAppDrawer(),
           body: Builder(
             builder: (context) {
-              // Show the new trip request dialog only on transition to “new request available”
               return BlocListener<DriverHomeCubit, DriverHomeState>(
                 listenWhen: (previous, current) {
                   final wasAvail = previous is DriverOnline &&

@@ -14,13 +14,11 @@ class DriverCubit extends Cubit<DriverState> {
 
   DriverCubit() : super(DriverInitial());
 
-// Pipedream base (no trailing slash)
   final String base = 'https://eocyz9fe1kyb8l0.m.pipedream.net';
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
-        'x-api-key': KapiKeys
-            .pipedreamApiKey, // must match APP_API_KEY (env) in Pipedream
+        'x-api-key': KapiKeys.pipedreamApiKey,
       };
 
   Future<Map<String, dynamic>> _postJson(
@@ -43,7 +41,6 @@ class DriverCubit extends Cubit<DriverState> {
     return data;
   }
 
-  /// Creates a complete driver profile, including uploading images and saving to Firestore.
   Future<void> createDriverProfile({
     required String uid,
     required String email,
@@ -68,7 +65,6 @@ class DriverCubit extends Cubit<DriverState> {
           driversLicenseUrl,
           carLicenseUrl,
           criminalRecordUrl;
-      // Upload files in parallel
       await Future.wait([
         if (profileImageFile != null)
           _uploadImageToCloudinary(profileImageFile, uid)
@@ -104,7 +100,6 @@ class DriverCubit extends Cubit<DriverState> {
         stripeConnectAccountId: stripeConnectAccountId,
       );
 
-      // set() creates or overwrites (safe)
       await _db.collection('drivers').doc(uid).set(newDriver.toMap());
       emit(DriverProfileCreated());
     } catch (e) {
@@ -112,7 +107,6 @@ class DriverCubit extends Cubit<DriverState> {
     }
   }
 
-  /// Create a Stripe Connect Express account. Returns acct_...; does NOT write to Firestore.
   Future<String?> createDriverConnectAccount({
     required String driverUid,
     required String email,
@@ -138,7 +132,6 @@ class DriverCubit extends Cubit<DriverState> {
     }
   }
 
-  /// Generate onboarding link for the driver account (open in WebView).
   Future<String?> createDriverOnboardingLink({
     required String accountId,
     required String returnUrl,
@@ -160,9 +153,9 @@ class DriverCubit extends Cubit<DriverState> {
 
   Future<void> requestPayout({
     required String driverUid,
-    required int amountCents, // e.g., 100.00 EGP => 10000
-    String currency = 'usd', // or 'egp' for your tests
-    int minThresholdCents = 5000, // e.g., $50
+    required int amountCents,
+    String currency = 'usd',
+    int minThresholdCents = 5000,
   }) async {
     try {
       if (amountCents <= 0) {
@@ -198,13 +191,11 @@ class DriverCubit extends Cubit<DriverState> {
           throw Exception('Insufficient balance');
         }
 
-        // Deduct immediately to avoid double spending
         final newBalanceCents = balanceCents - amountCents;
         final newBalance = newBalanceCents / 100.0;
 
         tx.update(driverRef, {'balance': newBalance});
 
-        // Create payout request (root-level collection)
         final payoutRef = _db.collection('payouts').doc();
         tx.set(payoutRef, {
           'driverUid': driverUid,
@@ -218,7 +209,6 @@ class DriverCubit extends Cubit<DriverState> {
         });
       });
 
-      // Reload and emit updated driver
       final updatedSnap = await _db.collection('drivers').doc(driverUid).get();
       final updatedData = updatedSnap.data();
       if (updatedData == null) {
@@ -231,7 +221,6 @@ class DriverCubit extends Cubit<DriverState> {
     }
   }
 
-  /// Transfer funds (simulated in test mode) to the driver’s Connect account.
   Future<void> transferToDriver({
     required String accountId,
     required int amountCents,
@@ -248,13 +237,11 @@ class DriverCubit extends Cubit<DriverState> {
       if (transfer == null || transfer['id'] == null) {
         throw Exception('Transfer failed: $data');
       }
-      // Optionally update internal ledger here (driver balance)
     } catch (e) {
       emit(DriverError(message: 'Transfer error: $e'));
     }
   }
 
-  /// Upload to Cloudinary
   Future<String?> _uploadImageToCloudinary(
       File imageFile, String publicId) async {
     final url = Uri.parse(
@@ -276,7 +263,6 @@ class DriverCubit extends Cubit<DriverState> {
     }
   }
 
-  /// Check if a driver doc exists
   Future<bool> checkIfDriverExists(String uid) async {
     try {
       final doc = await _db.collection('drivers').doc(uid).get();
@@ -286,7 +272,6 @@ class DriverCubit extends Cubit<DriverState> {
     }
   }
 
-  /// Listen to a driver doc
   void listenToDriver(String uid) {
     emit(DriverLoading());
     _driverSubscription?.cancel();
@@ -301,7 +286,6 @@ class DriverCubit extends Cubit<DriverState> {
     });
   }
 
-  /// Update driver doc (requires doc to exist)
   Future<void> updateDriver(String uid, Map<String, dynamic> data) async {
     try {
       await _db.collection('drivers').doc(uid).update(data);
@@ -315,9 +299,7 @@ class DriverCubit extends Cubit<DriverState> {
       await _db.collection('drivers').doc(driverId).update({
         'balance': FieldValue.increment(earnings),
       });
-    } catch (e) {
-// Swallow error in test; consider emitting state if needed
-    }
+    } catch (e) {}
   }
 
   Future<void> incrementTotalRides(String driverId) async {
@@ -325,9 +307,7 @@ class DriverCubit extends Cubit<DriverState> {
       await _db.collection('drivers').doc(driverId).update({
         'totalRides': FieldValue.increment(1),
       });
-    } catch (e) {
-// Swallow error in test
-    }
+    } catch (e) {}
   }
 
   Future<void> updateDriverRating(String driverId, double newRating) async {
@@ -342,9 +322,7 @@ class DriverCubit extends Cubit<DriverState> {
         final avg = ((oldRating * totalRides) + newRating) / (totalRides + 1);
         tx.update(ref, {'rating': avg});
       });
-    } catch (e) {
-// Log only
-    }
+    } catch (e) {}
   }
 
   @override

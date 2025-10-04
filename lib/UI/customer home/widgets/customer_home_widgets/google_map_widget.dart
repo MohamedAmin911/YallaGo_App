@@ -17,14 +17,12 @@ Widget buildGoogleMap(BuildContext context, HomeState state) {
     markers = state.markers;
     polylines = state.polylines;
   } else if (state is HomeSearchingForDriver) {
-    // --- ADD THIS CASE ---
     markers = state.markers;
-    // Create the circle to represent the search radius
     circles = {
       Circle(
         circleId: const CircleId('search_radius'),
         center: state.currentPosition,
-        radius: 500, // 5km radius
+        radius: 500,
         fillColor: KColor.primary.withOpacity(0.2),
         strokeColor: KColor.primary,
         strokeWidth: 2,

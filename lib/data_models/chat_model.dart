@@ -5,8 +5,7 @@ class ChatMessageModel {
   final String senderUid;
   final String text;
   final Timestamp timestamp;
-  // --- NEW FIELD ---
-  // A list of UIDs of users who have read this message.
+
   final List<String> readBy;
 
   ChatMessageModel({
@@ -14,7 +13,7 @@ class ChatMessageModel {
     required this.senderUid,
     required this.text,
     required this.timestamp,
-    this.readBy = const [], // Default to an empty list
+    this.readBy = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -33,7 +32,6 @@ class ChatMessageModel {
       senderUid: map['senderUid'] ?? '',
       text: map['text'] ?? '',
       timestamp: map['timestamp'] ?? Timestamp.now(),
-      // Read the list from Firestore, defaulting to an empty list if it doesn't exist
       readBy: List<String>.from(map['readBy'] ?? []),
     );
   }

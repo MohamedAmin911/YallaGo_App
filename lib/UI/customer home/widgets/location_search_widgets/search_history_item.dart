@@ -15,7 +15,6 @@ class SearchHistoryItem extends StatelessWidget {
   });
 
   String _getTitle(Map<String, dynamic> item) {
-    // Priority: main_text → structured_formatting.main_text → title → first chunk of address/description
     String? title = (item['title'] as String?)?.trim();
 
     if ((title == null || title.isEmpty) &&
@@ -39,10 +38,8 @@ class SearchHistoryItem extends StatelessWidget {
   }
 
   String? _getSubtitle(Map<String, dynamic> item, String title) {
-    // Subtitle must be the full description if available
     String? subtitle = (item['address'] as String?)?.trim();
 
-    // Fallbacks if description missing
     subtitle ??= (item['subtitle'] as String?)?.trim();
     subtitle ??= (item['secondary_text'] as String?)?.trim();
     if (subtitle == null || subtitle.isEmpty) {
@@ -51,7 +48,6 @@ class SearchHistoryItem extends StatelessWidget {
 
     if (subtitle == null || subtitle.isEmpty) return null;
 
-    // Avoid showing the same text twice
     if (subtitle.toLowerCase() == title.toLowerCase()) return null;
 
     return subtitle;
@@ -72,8 +68,7 @@ class SearchHistoryItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(22.r),
           ),
           leading: Icon(
-            Icons
-                .history_toggle_off_rounded, // change to Icons.place_outlined if you prefer
+            Icons.history_toggle_off_rounded,
             size: 30.sp,
             color: KColor.primary,
           ),
