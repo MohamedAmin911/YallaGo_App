@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ![1](assets/images/logo5.png)
 
 YallaGo - Full-Stack Ride-Hailing Application
@@ -158,21 +157,3 @@ Mohamed Amin
 LinkedIn: [linkedin.com/in/mohamed-amin-002849189/](url)
 
 Email: [mohamed.amin911911@gmail.com](url)
-=======
-# taxi_app
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
