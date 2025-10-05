@@ -29,7 +29,7 @@ The ecosystem consists of three distinct parts:
 
 🎥 Live Trip booking
 
-![6](logo/B96A3592-8E36-4ee3-9438-ADCBC52E3482_video.mp4)
+![6](logo/trip_booking.mp4)
 
 ---
 ✨ Features
