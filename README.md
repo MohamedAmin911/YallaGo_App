@@ -13,19 +13,31 @@ The ecosystem consists of three distinct parts:
 
 🎥 Driver Authentication
 
-![2](logo/DRIVER_AUTH.mp4)
+https://github.com/user-attachments/assets/607aa3f1-63bf-43a7-ace4-5c4b43ddad9b
+
+
+
 
 🎥 Customer Authentication
 
-![3](logo/CUS_AUTH.mp4)
+https://github.com/user-attachments/assets/c0817367-6ae0-4b0f-ab96-c75393c06617
+
+
+
 
 🎥 Driver app features
 
-![4](logo/DRIVER_FEA.mp4)
+https://github.com/user-attachments/assets/5992b0d3-b0a3-4da3-8faf-ae95ce8e0a10
+
+
+
 
 🎥 Customer app features
 
-![5](logo/CUS_FEATURES.mp4)
+https://github.com/user-attachments/assets/293bdb79-4e45-4d9e-92b6-b56ecffbf811
+
+
+
 
 🎥 Live Trip booking
 
