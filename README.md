@@ -11,6 +11,13 @@ The ecosystem consists of three distinct parts:
 
 🖥️ A Web-Based Admin Dashboard: For user verification and platform monitoring.
 
+🎥 Live Trip booking
+
+https://github.com/user-attachments/assets/1a9136b4-fb85-450d-870d-530114bac398
+
+
+
+
 🎥 Driver Authentication
 
 https://github.com/user-attachments/assets/607aa3f1-63bf-43a7-ace4-5c4b43ddad9b
@@ -38,10 +45,6 @@ https://github.com/user-attachments/assets/293bdb79-4e45-4d9e-92b6-b56ecffbf811
 
 
 
-
-🎥 Live Trip booking
-
-https://github.com/user-attachments/assets/1a9136b4-fb85-450d-870d-530114bac398
 
 
 ---
