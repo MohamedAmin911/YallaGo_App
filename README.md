@@ -11,20 +11,41 @@ The ecosystem consists of three distinct parts:
 
 🖥️ A Web-Based Admin Dashboard: For user verification and platform monitoring.
 
+🎥 Live Trip booking
+
+https://github.com/user-attachments/assets/1a9136b4-fb85-450d-870d-530114bac398
+
+
+
+
 🎥 Driver Authentication
-![2](logo/DRIVER AUTH.mp4)
+
+https://github.com/user-attachments/assets/607aa3f1-63bf-43a7-ace4-5c4b43ddad9b
+
+
+
 
 🎥 Customer Authentication
-![3](logo/CUS AUTH.mp4)
+
+https://github.com/user-attachments/assets/c0817367-6ae0-4b0f-ab96-c75393c06617
+
+
+
 
 🎥 Driver app features
-![4](logo/DRIVER FEA.mp4)
+
+https://github.com/user-attachments/assets/5992b0d3-b0a3-4da3-8faf-ae95ce8e0a10
+
+
+
 
 🎥 Customer app features
-![5](logo/CUS FEATURES.mp4)
 
-🎥 Live Trip booking
-![6](logo/B96A3592-8E36-4ee3-9438-ADCBC52E3482_video.mp4)
+https://github.com/user-attachments/assets/293bdb79-4e45-4d9e-92b6-b56ecffbf811
+
+
+
+
 
 ---
 ✨ Features
