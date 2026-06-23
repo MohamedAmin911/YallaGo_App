@@ -36,6 +36,9 @@ class PaymentCubit extends Cubit<PaymentState> {
       }),
     );
     final data = json.decode(r.body);
+    if (data['ok'] == false) {
+      throw Exception('API error: ${data['error']}');
+    }
     final customerId = data['customer']['id'];
     await _db.collection('customers').doc(customerUid).update({
       'stripeCustomerId': customerId,
@@ -66,6 +69,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         },
         body: json.encode({'customerId': stripeCustomerId}),
       );
+      print('SETUP INTENT RES: ${r.statusCode} | ${r.body}');
       final data = json.decode(r.body) as Map<String, dynamic>;
       final clientSecret = data['setupIntent']['client_secret'] as String;
 
@@ -125,7 +129,8 @@ class PaymentCubit extends Cubit<PaymentState> {
       }, SetOptions(merge: true));
 
       emit(PaymentMethodAdded());
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('STRIPE SAVE CARD ERROR: $e\n$stackTrace');
       emit(PaymentError(message: 'Stripe save card failed: $e'));
     }
   }

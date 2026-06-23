@@ -7,7 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:taxi_app/bloc/auth/auth_cubit.dart';
 import 'package:taxi_app/bloc/auth/auth_states.dart';
-import 'package:taxi_app/bloc/customer/customer_cubit.dart';
+import 'package:taxi_app/bloc/driver/driver_cubit.dart';
 import 'package:taxi_app/common/extensions.dart';
 import 'package:taxi_app/common/text_style.dart';
 import 'package:taxi_app/common_widgets/rounded_button.dart';
@@ -95,9 +95,9 @@ class _DriverOtpVerificationViewState extends State<DriverOtpVerificationView>
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) async {
           if (state is AuthLoggedIn) {
-            final customerCubit = context.read<CustomerCubit>();
+            final driverCubit = context.read<DriverCubit>();
             final userExists =
-                await customerCubit.checkIfUserExists(state.user.uid);
+                await driverCubit.checkIfDriverExists(state.user.uid);
             if (userExists) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Welcome back!")),

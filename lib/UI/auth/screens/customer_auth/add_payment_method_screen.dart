@@ -55,14 +55,17 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
       return;
     }
 
-    final authState = context.read<AuthCubit>().state;
-    if (authState is AuthLoggedIn) {
+    final user = _auth.currentUser;
+    if (user != null) {
       context.read<PaymentCubit>().stripeSaveCard(
             email: widget.email,
             phone: widget.phone,
-            customerUid: authState.user.uid,
+            customerUid: user.uid,
             fullName: _cardholderNameController.text.trim(),
           );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Authentication error. Please log in again.")));
     }
   }
 
@@ -148,44 +151,47 @@ class _AddPaymentMethodState extends State<AddPaymentMethod> {
                     ),
                     SizedBox(height: 18.h),
 
-                    CardField(
-                      controller: _cardFieldController,
-                      decoration: InputDecoration(
-                        hintStyle: appStyle(
-                          size: 14.sp,
-                          color: KColor.placeholder,
-                          fontWeight: FontWeight.w500,
+                    SizedBox(
+                      height: 75,
+                      child: CardField(
+                        controller: _cardFieldController,
+                        decoration: InputDecoration(
+                          hintStyle: appStyle(
+                            size: 14.sp,
+                            color: KColor.placeholder,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: KColor.lightGray, width: 2.w),
+                            borderRadius: BorderRadius.circular(15.r),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: const Color(0xFF5433FF), width: 2.w),
+                            borderRadius: BorderRadius.circular(15.r),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: KColor.lightGray, width: 2.w),
+                            borderRadius: BorderRadius.circular(15.r),
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: KColor.lightWhite, width: 2.w),
+                            borderRadius: BorderRadius.circular(15.r),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: KColor.lightGray, width: 2.w),
+                            borderRadius: BorderRadius.circular(15.r),
+                          ),
+                          labelText: 'Card Number, MM/YY, CVC',
+                          labelStyle: appStyle(
+                              size: 16.sp,
+                              color: const Color(0xFF5433FF),
+                              fontWeight: FontWeight.w600),
                         ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: KColor.lightGray, width: 2.w),
-                          borderRadius: BorderRadius.circular(15.r),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: const Color(0xFF5433FF), width: 2.w),
-                          borderRadius: BorderRadius.circular(15.r),
-                        ),
-                        disabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: KColor.lightGray, width: 2.w),
-                          borderRadius: BorderRadius.circular(15.r),
-                        ),
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: KColor.lightWhite, width: 2.w),
-                          borderRadius: BorderRadius.circular(15.r),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: KColor.lightGray, width: 2.w),
-                          borderRadius: BorderRadius.circular(15.r),
-                        ),
-                        labelText: 'Card Number, MM/YY, CVC',
-                        labelStyle: appStyle(
-                            size: 16.sp,
-                            color: const Color(0xFF5433FF),
-                            fontWeight: FontWeight.w600),
                       ),
                     ),
                     SizedBox(height: 15.h),

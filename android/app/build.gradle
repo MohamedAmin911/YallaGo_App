@@ -1,11 +1,8 @@
 plugins {
     id "com.android.application"
-<<<<<<< HEAD
     // START: FlutterFire Configuration
     id 'com.google.gms.google-services'
     // END: FlutterFire Configuration
-=======
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
@@ -17,21 +14,12 @@ android {
     ndkVersion = "29.0.13113456"
 
     compileOptions {
-<<<<<<< HEAD
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         jvmTarget = '17'
-=======
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
     }
 
     defaultConfig {
@@ -39,15 +27,10 @@ android {
         applicationId = "com.example.taxi_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-<<<<<<< HEAD
         minSdkVersion project.property('minSdkVersion').toInteger()
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
-=======
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -59,7 +42,6 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
-<<<<<<< HEAD
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -67,19 +49,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-=======
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
 }
 
 flutter {
     source = "../.."
 }
-<<<<<<< HEAD
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Add this line for desugaring
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
-=======
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))

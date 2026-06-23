@@ -94,19 +94,25 @@ class _OtpVerificationViewState extends State<OtpVerificationView>
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) async {
           if (state is AuthLoggedIn) {
-            final customerCubit = context.read<CustomerCubit>();
-            final userExists =
-                await customerCubit.checkIfUserExists(state.user.uid);
-            if (userExists) {
+            try {
+              final customerCubit = context.read<CustomerCubit>();
+              final userExists =
+                  await customerCubit.checkIfUserExists(state.user.uid);
+              if (userExists) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Welcome back!")),
+                );
+                context.pushRlacement(const AuthGate());
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Success!")),
+                );
+                context.pushRlacement(const CreateProfileScreen());
+              }
+            } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Welcome back!")),
+                SnackBar(content: Text("Firestore Error: $e"), duration: const Duration(seconds: 5)),
               );
-              context.pushRlacement(const AuthGate());
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Success!")),
-              );
-              context.pushRlacement(const CreateProfileScreen());
             }
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(

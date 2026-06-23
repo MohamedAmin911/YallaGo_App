@@ -1,25 +1,37 @@
-<<<<<<< HEAD
 buildscript {
     // This block defines project-wide settings.
     // We are setting the Kotlin version to be compatible with the Stripe package.
-    ext.kotlin_version = '1.9.23' 
+    ext.kotlin_version = '2.1.0' 
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
         // These are standard dependencies for an Android project.
-        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath 'com.android.tools.build:gradle:8.9.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-=======
->>>>>>> 9ea2111 (add splash screen (vid 1 min 22:21))
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            freeCompilerArgs += ["-Xskip-metadata-version-check"]
+        }
+    }
+}
+
+subprojects { project ->
+    if (project.name == "google_maps_flutter_android") {
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                languageVersion = "1.9"
+            }
+        }
     }
 }
 

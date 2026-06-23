@@ -16,9 +16,11 @@ import 'package:taxi_app/common/extensions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:taxi_app/services/notification_service.dart';
 import 'firebase_options.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

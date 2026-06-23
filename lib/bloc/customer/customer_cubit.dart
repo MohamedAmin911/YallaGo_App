@@ -85,13 +85,8 @@ class CustomerCubit extends Cubit<CustomerState> {
   }
 
   Future<bool> checkIfUserExists(String uid) async {
-    try {
-      final doc = await _db.collection('customers').doc(uid).get();
-      return doc.exists;
-    } catch (e) {
-      print("Error checking if user exists: $e");
-      return false;
-    }
+    final doc = await _db.collection('customers').doc(uid).get();
+    return doc.exists;
   }
 
   Future<String?> _uploadImageToCloudinary(
